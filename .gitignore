@@ -1,0 +1,48 @@
+# Runtime and build outputs
+__pycache__/
+*.py[cod]
+*.dll
+*.pdb
+*.obj
+*.log
+bin/
+obj/
+build/
+dist/
+.pytest_cache/
+.venv/
+venv/
+
+# CAD and project evidence must never be committed
+*.dwg
+*.dxf
+*.bak
+*.sv$
+*.ac$
+*.zip
+*.7z
+*.rar
+
+# Local configuration and credentials
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+*.lic
+secrets.*
+
+# Generated evidence and local work roots
+output/
+outputs/
+analysis/
+work/
+workspace/
+font-policy/
+v20-font-recovery.json
+
+# Editor and OS files
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store

@@ -1,0 +1,80 @@
+{
+  "name": "cad-reading-toolkit",
+  "version": "12.0.0",
+  "purpose": "portable read-only CAD evidence extraction, damper design-quantity reconciliation, per-device location, risk-tiered SVG sampling, and read-only ZWCAD lookup",
+  "core_entry": "AI_WORKFLOW.md",
+  "unified_runner": "scripts/运行CAD阻尼器数量核对V18.ps1",
+  "codex_skills": [
+    "codex-skill/cad-drawing-evidence-extraction"
+  ],
+  "supported_inputs": [
+    "DWG opened by ZWCAD",
+    "ZWCAD V5 recursive-text JSON",
+    "ZWCAD V5 frame-geometry JSON",
+    "ZWCAD V6 block-instance JSON",
+    "ZWCAD V7 oriented-text JSON",
+    "ZWCAD V10 primitive-geometry JSON",
+    "ZWCAD V13 visibility and layout-viewport JSON"
+    ,"ZWCAD V18 reachable-content fingerprint JSON"
+  ],
+  "capabilities": [
+    "structural-profession routing",
+    "portable non-synchronized work-root selection",
+    "drawing-role tiered directory filtering",
+    "embedded-date revision candidate filtering",
+    "exact-sha256 duplicate filtering",
+    "reachable inserted-content fingerprinting",
+    "supporting and uncertain drawing promotion",
+    "cross-DWG building and floor evidence grouping",
+    "automatic V12 cross-view normalization orchestration",
+    "unattended missing-font substitution with evidence",
+    "per-drawing isolated timeout and failure continuation",
+    "font and dialog configuration restoration",
+    "axis-namespace and compound-building normalization",
+    "rotated and fan straight-axis localization",
+    "concentric curved-axis and tangent-extension localization",
+    "bounded outermost-axis location evidence",
+    "per-device building-floor-axis location registry",
+    "handle-backed per-device geometry evidence",
+    "template-level local SVG previews",
+    "offline HTML audit index",
+    "location recalculation consistency gate",
+    "P0-P3 risk-tiered deterministic sampling",
+    "token-efficient AI review manifest",
+    "read-only ZWCAD coordinate and handle lookup",
+    "single-primary location normalization",
+    "location completeness and duplicate-ID gates",
+    "shared-building floor-evidence gating",
+    "recursive text and coordinate evidence",
+    "portable frame-scoped text indexing",
+    "frame and drawing-role evidence",
+    "damper semantic-instance counting",
+    "model, view and layout deduplication",
+    "viewport freeze and visibility analysis",
+    "direction and model reconciliation",
+    "continuous-floor and multi-building expansion",
+    "seeded unlabeled-symbol geometry matching",
+    "safe-stop evidence states",
+    "synthetic viewport regression"
+  ],
+  "safety": [
+    "original-dwg-read-only",
+    "sha256-copy-verification",
+    "existing-user-zwcad-session-refusal",
+    "task-local-font-map",
+    "per-drawing-process-isolation",
+    "external-build-and-work-directory",
+    "coordinate-backed-evidence",
+    "non-synchronized-review-copy-only",
+    "no-contract-or-production-release-conclusion"
+  ],
+  "excluded": [
+    "drawings",
+    "compiled-dlls",
+    "licenses",
+    "credentials",
+    "temporary-work-files",
+    "project-results"
+    ,"D4-deepening-automation"
+  ]
+}

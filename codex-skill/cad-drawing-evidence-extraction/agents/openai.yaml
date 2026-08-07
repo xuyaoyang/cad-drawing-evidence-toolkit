@@ -1,0 +1,4 @@
+interface:
+  display_name: "CAD 阻尼器数量核对"
+  short_description: "复筛CAD、归一阻尼器并生成风险分层与中望回查证据"
+  default_prompt: "Use $cad-drawing-evidence-extraction to read CAD evidence without modifying drawings, reconcile damper devices across views, locate them by straight or curved axes, rank V23 evidence by risk, and generate token-efficient SVG sampling plus read-only ZWCAD lookup tasks."
