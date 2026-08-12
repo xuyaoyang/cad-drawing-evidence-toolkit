@@ -1,6 +1,6 @@
 # 发布验证
 
-## 2026-08-12 v12.1候选复核
+## 2026-08-12 v12.1发布复核
 
 - 新增中望/AutoCAD安装发现；本机中望机械CAD 2026标记为当前可运行后端，
   AutoCAD 2023保持`discovery_only_backend_not_validated`。
