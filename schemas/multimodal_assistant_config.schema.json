@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/schemas/multimodal_assistant_config.schema.json",
+  "title": "Multimodal assistant routing profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "enabled",
+    "provider",
+    "model",
+    "api_key_env",
+    "input_modes",
+    "use_for",
+    "formal_confirmation_allowed"
+  ],
+  "properties": {
+    "schema_version": {"const": "multimodal-assistant-1.0"},
+    "enabled": {"type": "boolean"},
+    "provider": {"type": "string", "minLength": 1},
+    "base_url": {"type": "string", "minLength": 1},
+    "model": {"type": "string", "minLength": 1},
+    "api_key_env": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "input_modes": {
+      "type": "array",
+      "items": {"enum": ["text", "image"]},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "use_for": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "beam_section_candidate_review",
+          "high_risk_roi_review",
+          "axis_location_review",
+          "proxy_object_review"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "max_images_per_request": {"type": "integer", "minimum": 1, "maximum": 20},
+    "max_review_items": {"type": "integer", "minimum": 1, "maximum": 500},
+    "formal_confirmation_allowed": {"const": false},
+    "notes": {"type": "string"}
+  }
+}

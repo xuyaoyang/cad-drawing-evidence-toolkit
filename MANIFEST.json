@@ -1,6 +1,6 @@
 {
   "name": "cad-reading-toolkit",
-  "version": "12.0.0",
+  "version": "12.1.0",
   "purpose": "portable read-only CAD evidence extraction, damper design-quantity reconciliation, per-device location, risk-tiered SVG sampling, and read-only ZWCAD lookup",
   "core_entry": "AI_WORKFLOW.md",
   "unified_runner": "scripts/运行CAD阻尼器数量核对V18.ps1",
@@ -19,6 +19,8 @@
   ],
   "capabilities": [
     "structural-profession routing",
+    "portable ZWCAD and AutoCAD installation discovery",
+    "optional multimodal review routing with environment-only credentials",
     "portable non-synchronized work-root selection",
     "drawing-role tiered directory filtering",
     "embedded-date revision candidate filtering",
@@ -74,7 +76,9 @@
     "licenses",
     "credentials",
     "temporary-work-files",
-    "project-results"
-    ,"D4-deepening-automation"
+    "project-results",
+    "D4-deepening-automation",
+    "AutoCAD-export-backend",
+    "multimodal-formal-confirmation"
   ]
 }

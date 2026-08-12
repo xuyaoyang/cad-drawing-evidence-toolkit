@@ -1,6 +1,6 @@
-# CAD 识图工具包 v12
+# CAD 识图工具包 v12.1
 
-> 当前稳定发布线：`12.0.0`（2026-08-07）。本仓库只发布已经完成回归的
+> 当前候选发布线：`12.1.0`（2026-08-12）。本仓库只发布已经完成回归的
 > CAD只读证据能力；D4阻尼器深化自动识别已冻结，不属于本仓库的可用能力。
 
 面向结构 DWG 的只读证据提取和阻尼器设计数量核对。它将中望 CAD 作为 DWG 解析内核，自动导出文字、图框、块实例、文字方向、基础几何、图层与布局视口可见性，再由本地脚本完成专业路由、图纸角色判断、重复展示去重、楼栋/楼层展开、型号与 X/Y 方向调和。
@@ -25,6 +25,9 @@
 1. 将整个目录复制到目标 Windows 电脑。
 2. 安装能正常打开目标 DWG 的中望 CAD，并确认安装目录内存在
    `fonts\HZTXT.SHX` 和 `fonts\simplex.shx`。首次许可和启动设置须人工完成。
+   不同电脑安装位置不同，可先运行
+   `.\zwcad\发现CAD安装.ps1 -Vendor Any`；V18/V16在未传`-ZwcadRoot`时也会
+   自动发现已安装且API程序集完整的中望CAD。
 3. 运行前关闭用户正在操作的中望 CAD；无人值守入口检测到已有 ZWCAD 进程会
    默认安全停止，不会复用或终止用户会话。
 4. 原图保持只读；副本、编译结果和中间证据写入本机非同步工作目录。未传 `-WorkRoot` 时默认使用 `%LOCALAPPDATA%\CadReadingToolkit\Work`，也可设置环境变量 `CAD_READING_WORK_ROOT`。
@@ -33,7 +36,6 @@
 ```powershell
 .\scripts\运行CAD阻尼器数量核对V18.ps1 `
   -InputPath 'D:\项目\设计输入' `
-  -ZwcadRoot 'C:\Program Files\ZWSOFT\ZWCAD 2026' `
   -WorkRoot 'D:\CadWork\项目-V18' `
   -ContentScanOnly
 ```
@@ -43,7 +45,6 @@
 ```powershell
 .\scripts\运行CAD阻尼器数量核对V18.ps1 `
   -InputPath 'D:\项目\设计输入' `
-  -ZwcadRoot 'C:\Program Files\ZWSOFT\ZWCAD 2026' `
   -WorkRoot 'D:\CadWork\项目-V18'
 ```
 
@@ -51,6 +52,20 @@
 `<WorkRoot>\full\output\V16运行汇总.md` 与
 `<WorkRoot>\v19\V19跨DWG证据组.md`。单个用户明确指定的 DWG 仍可直接运行
 V16。原 DWG 只复制、校验 SHA-256、只读打开，流程关闭图纸时不保存。
+
+## v12.1环境与AI路由
+
+- 新增`zwcad\发现CAD安装.ps1`：先查`CAD_ZWCAD_ROOT`/`CAD_AUTOCAD_ROOT`，
+  再查卸载注册表和常见`Program Files`目录。路径发现结果会区分“当前中望后端可运行”
+  与“AutoCAD仅发现、未验证”。详见[CAD_BACKEND_COMPATIBILITY.md](CAD_BACKEND_COMPATIBILITY.md)。
+- 当前执行后端仍是中望CAD。能找到`acad.exe`、`AcMgd.dll`和`AcDbMgd.dll`不等于
+  AutoCAD兼容；真实AutoCAD适配和字段级回归完成前必须安全停止。
+- 基础AI没有图像能力时，可复制`MULTIMODAL_ASSISTANT.example.json`并配置独立
+  多模态服务；密钥只通过环境变量提供。配置检查入口为
+  `scripts\validate_multimodal_assistant_config.py`。
+- 多模态只用于V24等高风险局部证据的辅助复核，不能改变V19/V21/V23正式状态。
+  本仓库不发布自动梁尺寸或安装净空识别；下游若在完全无多模态条件下识别梁尺寸，
+  已知正确率较低，必须只输出候选/资料不足并人工复核。
 
 ## V12 新增能力
 

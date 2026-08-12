@@ -6,7 +6,8 @@
 
 ## 执行顺序
 
-1. 读取本文件、`ENVIRONMENT.md` 和 `OUTPUT_CONTRACT.md`。
+1. 读取本文件、`ENVIRONMENT.md`、`CAD_BACKEND_COMPATIBILITY.md`和
+   `OUTPUT_CONTRACT.md`；先运行`zwcad\发现CAD安装.ps1 -Vendor Any`核对本机宿主。
 2. 对项目目录运行 `scripts\运行CAD阻尼器数量核对V18.ps1 -ContentScanOnly`；单个用户明确指定的 DWG 可直接进入 V16。
 3. 审查 V17 分层和 V18 内容复筛：`selected` 为原主图；`promoted_primary` 为实际可达内容命中并升级的辅助/不确定图；`keep_supporting`、`reference_hit`、`content_negative` 和 `content_unresolved` 不自动计数。
 4. 只把 `selected + promoted_primary` 送入完整六导出。旧日期、相同哈希副本和内容未决项不得静默提升；内容阴性不等于图中没有目标。
@@ -27,9 +28,15 @@
    V23全部SVG、JSON和CSV同时塞入模型上下文。需要回原图坐标核查时，在中望
    加载`V24中望回查定位.lsp`，只对非OneDrive分析副本使用`V24OPEN/V24GOTO`。
    V23/V24只解释已定位模板，不能把缺主图或未定位证据组改成闭合。
+   基础模型不支持图像时，可按`MULTIMODAL_ASSISTANT.example.json`配置独立
+   多模态助手；配置结果必须经`validate_multimodal_assistant_config.py`验证，
+   多模态输出仍只能辅助复核，不能单独形成正式确认。
 9. 查看 `output\V20中望导出执行.csv` 和 `output\font-policy\font-policy.json`；
    任何超时、字体文件缺失、配置恢复异常或命令未完成都必须保留为安全停止。
 10. 仅在证据状态允许时报告设计数量候选；否则说明卡在哪一层、缺什么证据。
+
+本仓库不提供梁高或安装净空自动确认。外部深化模块若没有任何多模态通道，梁尺寸
+判读的已验证可靠性更低，应保留为候选/资料不足并要求人工复核，不能用最近文字补齐。
 
 ## 证据优先级
 

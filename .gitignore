@@ -31,6 +31,8 @@ venv/
 *.pfx
 *.lic
 secrets.*
+MULTIMODAL_ASSISTANT.json
+multimodal-assistant.local.json
 
 # Generated evidence and local work roots
 output/
