@@ -18,6 +18,11 @@
 - 当前项目电脑仍可显式使用 `G:\CodexWork`，但其他电脑不需要 G 盘，也不需要修改脚本源码。
 - DLL、缓存、日志和可重建中间文件不得写入 OneDrive。
 - 中望导出器必须针对目标电脑安装的中望版本现场重新编译，不分发预编译 DLL。
+- 中望/AutoCAD安装路径不得写死。统一入口未传`-ZwcadRoot`时按
+  `CAD_ZWCAD_ROOT`、卸载注册表和常见安装目录自动发现；也可先运行
+  `zwcad\发现CAD安装.ps1 -Vendor Any`审查结果。
+- 当前只验证中望CAD执行后端。AutoCAD安装发现仅用于兼容性预检，不能加载中望
+  程序集，也不能在AutoCAD适配器和真实DWG回归完成前自动切换。
 
 ## V18 执行内容
 
@@ -63,7 +68,9 @@ SHA-256 由 .NET 流式计算；允许失败的图框分析以退出码记录安
 
 ## 运行失败排查
 
-- 编译失败：确认 `ZwcadRoot` 是当前中望安装根目录，且两个托管 API DLL 存在。
+- 未发现中望：检查`CAD_ZWCAD_ROOT`，或显式传`-ZwcadRoot`；只有AutoCAD时当前
+  版本应安全停止。完整边界见`CAD_BACKEND_COMPATIBILITY.md`。
+- 编译失败：确认自动发现或显式传入的 `ZwcadRoot` 是当前中望安装根目录，且两个托管 API DLL 存在。
 - COM 无法启动：先手动启动一次中望、完成许可/首次启动设置后关闭，再重试。
 - 缺字体仍弹窗：检查 `output\font-policy\font-policy.json`、任务FMP及两个
   本机字体哈希；不要把原字体复制进分发包。

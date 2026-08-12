@@ -1,0 +1,14 @@
+{
+  "schema_version": "multimodal-assistant-1.0",
+  "enabled": false,
+  "provider": "openai-compatible",
+  "base_url": "https://example.invalid/v1",
+  "model": "replace-with-vision-model",
+  "api_key_env": "CAD_MULTIMODAL_API_KEY",
+  "input_modes": ["text", "image"],
+  "use_for": ["high_risk_roi_review", "axis_location_review"],
+  "max_images_per_request": 4,
+  "max_review_items": 20,
+  "formal_confirmation_allowed": false,
+  "notes": "Do not store API keys here. This repository does not publish automatic beam/clearance confirmation."
+}

@@ -1,5 +1,20 @@
 # 发布验证
 
+## 2026-08-12 v12.1候选复核
+
+- 新增中望/AutoCAD安装发现；本机中望机械CAD 2026标记为当前可运行后端，
+  AutoCAD 2023保持`discovery_only_backend_not_validated`。
+- V18/V16省略`-ZwcadRoot`时可以自动发现中望；`-RouteOnly`仍不要求或启动CAD。
+- 新增可选多模态路由配置、Schema和3项门禁测试；默认关闭，密钥不写入配置或输出，
+  `formal_confirmation_allowed`固定为`false`。
+- AutoCAD后端、D4梁识别和安装净空仍不在发布能力内。
+- 根目录测试`40 passed`，Skill内置测试`37 passed`；Python `compileall`通过。
+- 28个PowerShell脚本在PowerShell 7与Windows PowerShell 5.1解析错误均为0。
+- Codex Skill校验通过；本机中望机械CAD 2026 API重新编译7个导出器全部成功，
+  DLL仅保存在`G:\CodexWork`临时验证目录。
+- V16省略`-ZwcadRoot`的`-RouteOnly`冒烟通过，生成预检报告且未启动CAD进程。
+- 禁入扩展名、固定个人路径和凭证扫描结果均为0。
+
 ## 2026-08-07私有仓库发布前复核
 
 - Python测试：`37 passed`，包含参数化文字索引入口的独立目录回归。

@@ -2,7 +2,6 @@
     [Parameter(Mandatory = $true)]
     [string[]]$InputPath,
 
-    [Parameter(Mandatory = $true)]
     [string]$ZwcadRoot,
 
     [string]$WorkRoot,
@@ -118,6 +117,7 @@ $v19Script = Resolve-V18Component '组织跨DWG阻尼器证据组V19.py'
 $v12Script = Resolve-V18Component '跨视图阻尼器物理设备归一.py'
 $buildScript = Resolve-V18Component 'build_zwcad_content_fingerprint_v18.ps1'
 $batchScript = Resolve-V18Component '中望COM隔离批量只读导出V20.ps1'
+$cadDiscoveryScript = Resolve-V18Component '发现CAD安装.ps1'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $sourceCandidates = @(
     (Join-Path $PSScriptRoot 'zwcad'),
@@ -213,6 +213,12 @@ if ($RouteOnly) {
     Write-Output 'V18 仅完成 V17 路由预检；未启动中望 CAD。'
     Write-Output "工作目录：$WorkRoot"
     return
+}
+
+if ([string]::IsNullOrWhiteSpace($ZwcadRoot)) {
+    $cadCandidates = @(& $cadDiscoveryScript -Vendor ZWCAD -RequireCurrentBackend)
+    $ZwcadRoot = [string]$cadCandidates[0].install_root
+    Write-Output "已自动发现中望CAD：$ZwcadRoot"
 }
 
 $routeRows = @(Import-Csv -LiteralPath $routeManifest -Encoding utf8)

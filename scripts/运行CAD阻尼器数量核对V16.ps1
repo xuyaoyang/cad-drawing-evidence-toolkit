@@ -2,7 +2,6 @@
     [Parameter(Mandatory = $true)]
     [string[]]$InputPath,
 
-    [Parameter(Mandatory = $true)]
     [string]$ZwcadRoot,
 
     [string]$WorkRoot,
@@ -321,6 +320,7 @@ $layoutVisibilityScript = Resolve-V16Script '分析布局视口阻尼器可见�
 $summaryScript = Resolve-V16Script '汇总CAD阻尼器数量核对V16.py'
 $buildExportersScript = Resolve-V16Script 'build_zwcad_exporters_v16.ps1'
 $batchExportScript = Resolve-V16Script '中望COM隔离批量只读导出V20.ps1'
+$cadDiscoveryScript = Resolve-V16Script '发现CAD安装.ps1'
 $sourceCandidates = @(
     (Join-Path $PSScriptRoot 'zwcad'),
     (Join-Path $projectRoot 'zwcad'),
@@ -629,6 +629,12 @@ if ($selected.Count -eq 0) {
     ) -Step 'summary-no-selected' | Out-Null
     Write-Output "V16 未选择任何结构 DWG；详见 $summaryDir"
     return
+}
+
+if ([string]::IsNullOrWhiteSpace($ZwcadRoot)) {
+    $cadCandidates = @(& $cadDiscoveryScript -Vendor ZWCAD -RequireCurrentBackend)
+    $ZwcadRoot = [string]$cadCandidates[0].install_root
+    Write-Output "已自动发现中望CAD：$ZwcadRoot"
 }
 
 & $buildExportersScript `

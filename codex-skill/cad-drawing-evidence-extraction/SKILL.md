@@ -35,8 +35,9 @@ description: 从 DWG/DXF/CAD 图纸只读提取文字、递归块属性、块实
 物理身份归一和可见性核对。
 
 单个用户明确指定的 DWG 也可直接运行 `scripts/运行CAD阻尼器数量核对V16.ps1`，
-输入单张 DWG 或项目目录，
-并显式传入目标电脑的中望安装目录。脚本应：
+输入单张 DWG 或项目目录。可显式传入目标电脑的中望安装目录；未传时必须先调用
+`scripts/zwcad/发现CAD安装.ps1 -Vendor ZWCAD -RequireCurrentBackend`，不得复用
+另一台电脑的固定路径。脚本应：
 
 1. 把主流程 DWG 复制到显式 `-WorkRoot`、环境变量 `CAD_READING_WORK_ROOT` 或本机 `%LOCALAPPDATA%\CadReadingToolkit\Work`，核对原图与副本 SHA-256；工作目录不得位于 OneDrive/同步目录；
 2. 在工作目录本机编译 V5/V6/V7/V10/V13，不携带或复用其他电脑的 DLL；
@@ -54,11 +55,18 @@ V16 与 V18 必须经 `scripts/zwcad/中望COM隔离批量只读导出V20.ps1`
 调用中望，不再直接复用一个长时间运行的 CAD 会话。运行前：
 
 1. 确认 Windows 已安装并注册可用的中望 CAD COM/.NET API；
-2. 显式传入该电脑的中望安装目录，确认 `fonts/HZTXT.SHX` 与
+2. 使用显式路径或自动发现的该电脑中望安装目录，确认 `fonts/HZTXT.SHX` 与
    `fonts/simplex.shx` 存在；
 3. 关闭用户正在操作的中望 CAD。默认检测到现有 `ZWCAD` 进程就安全停止，
    不得在无人值守流程中复用或终止用户会话；
 4. 把执行日志、字体策略、任务 JSON 和可重建 DLL 保存在非同步工作目录。
+
+当前只验证中望CAD后端。发现AutoCAD及其`AcMgd.dll/AcDbMgd.dll`只表示宿主存在，
+不表示本技能可在AutoCAD运行；未完成独立适配和真实DWG字段级回归前必须安全停止。
+
+基础模型没有多模态能力时，可以配置独立多模态模型辅助V24高风险ROI复核；密钥只从
+环境变量读取，视觉输出不能改变正式证据状态。本技能不确认梁高或安装净空；下游在
+完全无多模态条件下判读梁尺寸时可靠性较低，必须只保留候选/资料不足并人工复核。
 
 V20 为本次批处理临时设置：
 
