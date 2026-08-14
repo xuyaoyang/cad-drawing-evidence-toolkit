@@ -1,9 +1,10 @@
 {
   "name": "cad-reading-toolkit",
-  "version": "12.1.0",
+  "version": "12.2.0",
   "purpose": "portable read-only CAD evidence extraction, damper design-quantity reconciliation, per-device location, risk-tiered SVG sampling, and read-only ZWCAD lookup",
   "core_entry": "AI_WORKFLOW.md",
   "unified_runner": "scripts/运行CAD阻尼器数量核对V18.ps1",
+  "experimental_downstream_runner": "experimental/deepening/scripts/export_d4_minimal_clearance_anchorage.py",
   "codex_skills": [
     "codex-skill/cad-drawing-evidence-extraction"
   ],
@@ -57,7 +58,8 @@
     "continuous-floor and multi-building expansion",
     "seeded unlabeled-symbol geometry matching",
     "safe-stop evidence states",
-    "synthetic viewport regression"
+    "synthetic viewport regression",
+    "existing-state per-device clearance and geometric anchorage export"
   ],
   "safety": [
     "original-dwg-read-only",
@@ -77,7 +79,8 @@
     "credentials",
     "temporary-work-files",
     "project-results",
-    "D4-deepening-automation",
+    "D4-cross-project-automatic-recognition",
+    "project-specific-current-state-and-ledger-data",
     "AutoCAD-export-backend",
     "multimodal-formal-confirmation"
   ]
