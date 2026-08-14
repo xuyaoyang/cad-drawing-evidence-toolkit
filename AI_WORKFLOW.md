@@ -8,6 +8,8 @@
 
 1. 读取本文件、`ENVIRONMENT.md`、`CAD_BACKEND_COMPATIBILITY.md`和
    `OUTPUT_CONTRACT.md`；先运行`zwcad\发现CAD安装.ps1 -Vendor Any`核对本机宿主。
+   未发现中望时，不得静默把正式V18/V16改走其他后端；如任务只需要原始检索候选，可显式
+   运行`scripts\运行ACadSharp只读候选提取.ps1`，并保持其独立候选状态。
 2. 对项目目录运行 `scripts\运行CAD阻尼器数量核对V18.ps1 -ContentScanOnly`；单个用户明确指定的 DWG 可直接进入 V16。
 3. 审查 V17 分层和 V18 内容复筛：`selected` 为原主图；`promoted_primary` 为实际可达内容命中并升级的辅助/不确定图；`keep_supporting`、`reference_hit`、`content_negative` 和 `content_unresolved` 不自动计数。
 4. 只把 `selected + promoted_primary` 送入完整六导出。旧日期、相同哈希副本和内容未决项不得静默提升；内容阴性不等于图中没有目标。

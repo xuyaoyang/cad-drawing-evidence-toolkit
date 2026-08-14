@@ -10,6 +10,10 @@
   文件时V20拒绝无人值守运行。
 - .NET Framework 4.x 的 64 位 C# 编译器。
 
+仅使用ACadSharp候选后端时，不要求安装中望CAD；仍需Windows自带/安装的.NET Framework
+4.x 64位C#编译器。首次在线构建会下载固定NuGet包，也可通过`-PackagePath`传入已下载且
+SHA-256匹配的包。NuGet包、DLL和EXE必须位于仓库和同步目录之外。
+
 ## 路径要求
 
 - 原始 DWG 可位于项目目录或 OneDrive，但保持只读。
@@ -23,6 +27,7 @@
   `zwcad\发现CAD安装.ps1 -Vendor Any`审查结果。
 - 当前只验证中望CAD执行后端。AutoCAD安装发现仅用于兼容性预检，不能加载中望
   程序集，也不能在AutoCAD适配器和真实DWG回归完成前自动切换。
+- ACadSharp入口是显式候选通道，不会由V18/V16静默选中，也不会向正式中望输出契约伪装。
 
 ## V18 执行内容
 

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/xuyaoyang/cad-drawing-evidence-toolkit/schemas/acadsharp-portable-evidence.schema.json",
+  "title": "ACadSharp portable candidate evidence",
+  "type": "object",
+  "required": ["metadata", "summary", "notifications", "traversal_issues", "limitations", "evidence_records"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": [
+        "schema_version", "backend", "backend_version", "source_name", "source_sha256", "status",
+        "formal_backend_equivalent", "absence_proven", "original_dwg_opened_by_parser", "analysis_copy_only",
+        "coordinate_evidence_status", "attribute_coordinate_status", "effective_layer_status",
+        "layout_viewport_visibility_status"
+      ],
+      "properties": {
+        "schema_version": {"const": "acadsharp-portable-evidence/0.1"},
+        "backend": {"const": "ACadSharp"},
+        "backend_version": {"type": "string"},
+        "source_name": {"type": "string"},
+        "source_sha256": {"type": "string", "pattern": "^[0-9A-F]{64}$"},
+        "status": {
+          "enum": [
+            "portable_readonly_candidate_ready_for_comparison",
+            "portable_readonly_candidate_unresolved"
+          ]
+        },
+        "formal_backend_equivalent": {"const": false},
+        "absence_proven": {"const": false},
+        "original_dwg_opened_by_parser": {"const": false},
+        "analysis_copy_only": {"const": true},
+        "effective_layer_status": {"const": "not_implemented_unverified"},
+        "layout_viewport_visibility_status": {"const": "not_implemented_unverified"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["evidence_record_count", "notification_count", "traversal_issue_count"]
+    },
+    "notifications": {"type": "array"},
+    "traversal_issues": {"type": "array"},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "evidence_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["entity_type", "origin", "handle", "instance_key", "root_space", "owner_block", "block_path", "layer", "is_invisible"]
+      }
+    }
+  }
+}
