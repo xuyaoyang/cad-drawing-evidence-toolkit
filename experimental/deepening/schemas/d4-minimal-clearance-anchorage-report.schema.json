@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.rhytkj.cn/schemas/d4-minimal-clearance-anchorage-report.schema.json",
+  "title": "D4逐台最小净空与上下梁几何生根报告",
+  "type": "object",
+  "required": ["schema_version", "report_kind", "source_manifest", "devices", "stats", "boundary", "report_hash"],
+  "properties": {
+    "schema_version": {"const": "D4-minimal-clearance-anchorage-report-1.0"},
+    "report_kind": {"const": "per_device_minimal_clearance_and_geometric_beam_anchorage"},
+    "source_manifest": {"type": "object"},
+    "devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "registry_device_id", "building_id", "floor", "axis_position",
+          "lower_beam_top_elevation_mm", "lower_drop_status", "lower_anchorage",
+          "upper_beam_top_elevation_mm", "upper_beam_height_mm", "upper_drop_status", "upper_anchorage",
+          "beam_clearance_excluding_upturn_mm", "clearance_status", "upturn_included", "overall_status", "unresolved_reasons"
+        ],
+        "properties": {
+          "registry_device_id": {"type": "string", "minLength": 1},
+          "building_id": {"type": "string"},
+          "floor": {"type": "string"},
+          "axis_position": {"type": "string"},
+          "lower_beam_top_elevation_mm": {"type": ["number", "null"]},
+          "upper_beam_top_elevation_mm": {"type": ["number", "null"]},
+          "upper_beam_height_mm": {"type": ["number", "null"]},
+          "beam_clearance_excluding_upturn_mm": {"type": ["number", "null"]},
+          "lower_drop_status": {"enum": ["无", "有", "升板", "资料不足"]},
+          "upper_drop_status": {"enum": ["无", "有", "升板", "资料不足"]},
+          "lower_anchorage": {"$ref": "#/$defs/anchorage"},
+          "upper_anchorage": {"$ref": "#/$defs/anchorage"},
+          "clearance_status": {"enum": ["已确认", "资料不足"]},
+          "upturn_included": {"const": false},
+          "overall_status": {"enum": ["已确认", "待人工核实", "冲突"]},
+          "unresolved_reasons": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "stats": {"type": "object"},
+    "boundary": {
+      "type": "object",
+      "required": [
+        "one_row_per_input_device", "clearance_is_beam_to_beam_and_excludes_upturn",
+        "anchorage_is_geometric_envelope_closure_only", "wall_concealment_checked",
+        "upturn_dimensions_checked", "missing_values_filled_with_zero", "original_dwg_modified", "production_release"
+      ],
+      "properties": {
+        "one_row_per_input_device": {"const": true},
+        "clearance_is_beam_to_beam_and_excludes_upturn": {"const": true},
+        "anchorage_is_geometric_envelope_closure_only": {"const": true},
+        "wall_concealment_checked": {"const": false},
+        "upturn_dimensions_checked": {"const": false},
+        "missing_values_filled_with_zero": {"const": false},
+        "original_dwg_modified": {"const": false},
+        "production_release": {"const": false}
+      }
+    },
+    "report_hash": {"type": "string", "pattern": "^[A-F0-9]{64}$"}
+  },
+  "$defs": {
+    "anchorage": {
+      "type": "object",
+      "required": ["status", "conclusion", "reason", "beam_id"],
+      "properties": {
+        "status": {"enum": ["已确认", "候选", "资料不足", "冲突"]},
+        "conclusion": {"enum": ["已生根", "待人工核实"]},
+        "reason": {"type": "string", "minLength": 1},
+        "beam_id": {"type": "string"}
+      }
+    }
+  }
+}
