@@ -1,5 +1,34 @@
 # 输出与证据契约
 
+## ACadSharp便携候选契约
+
+`acadsharp-portable-evidence/0.1`是独立的原始候选契约，不属于V5/V6/V7/V10/V13/V18
+正式输出。至少必须保留：源文件名和SHA-256、后端及版本、DWG版本、总状态、解析通知、
+遍历问题、未支持实体计数，以及每条候选的实体类型、Handle、根空间、块路径、图层和
+实例键。坐标字段只对该解析器当前结果负责。
+
+`ATTDEF`必须作为`definition_template_not_placed_value=true`的定义模板单列，不能伪装成
+已放置TEXT或ATTRIB。MINSERT可以记录行列数和间距，但在逐项展开前不能把单个INSERT候选
+当作全部阵列实例。
+
+以下门禁固定适用：
+
+- `formal_backend_equivalent=false`；
+- `absence_proven=false`；
+- `original_dwg_opened_by_parser=false`且`analysis_copy_only=true`；
+- ATTRIB坐标为`parser_value_not_backend_equivalent`；
+- 布局视口可见性和嵌套块有效图层为`not_implemented_unverified`；
+- 任一解析通知、遍历错误、未支持可达实体或非均匀缩放存在时，状态为
+  `portable_readonly_candidate_unresolved`。
+
+候选输出不得直接喂给V16/V19/V21数量与定位闭合逻辑。阴性检索只表示当前候选API范围内
+未命中，不能证明图中不存在目标。
+
+字段对比输出`acadsharp-zwcad-field-comparison/0.1`固定保持
+`candidate_field_comparison_unresolved`、`formal_backend_equivalent=false`和
+`absence_proven=false`。只有语义相同的字段才能计入匹配；诊断性的嵌套组合变换、旋转圆
+外包框或ATTDEF兼容口径不得被解释为正式后端等价。
+
 ## V18 顶层输出
 
 `<WorkRoot>\output\V18目录内容复筛.md`、`.csv`、`.json` 必须至少包含：

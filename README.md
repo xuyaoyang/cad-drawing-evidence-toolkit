@@ -1,6 +1,6 @@
-# CAD 识图工具包 v12.2
+# CAD 识图工具包 v12.3
 
-> 当前开发版本：`12.2.0`（2026-08-14）。本仓库的稳定主线仍以CAD只读证据能力为核心；
+> 当前开发版本：`12.3.0`（2026-08-14），稳定Release仍为`12.1.0`。本仓库的稳定主线仍以CAD只读证据能力为核心；
 > D4阻尼器跨项目自动识别保持冻结。本版本新增的只是消费既有状态的受限汇总器，不会从DWG
 > 自动推导梁或净空。
 
@@ -13,6 +13,7 @@
 | 能力 | 入口/产物 | 当前边界 |
 | --- | --- | --- |
 | 中望CAD只读提取 | V18/V16统一入口、V20隔离工作器、V5/V6/V7/V10/V13/V18导出器源码 | 目标电脑现场编译；原DWG只读且关闭时不保存 |
+| ACadSharp便携候选提取 | `scripts\运行ACadSharp只读候选提取.ps1`、候选证据JSON | 无需安装CAD；只用于字段对照和候选检索，不是中望正式后端等价替代 |
 | 文字索引与检索 | `scripts\生成图纸文字索引.py`、递归文字JSON、坐标/句柄/块路径 | 代理对象或导出跳过项保持未决 |
 | 轴网与逐台定位 | V19/V21/V22/V23 | 支持正交、旋转/扇形直轴及满足证据门槛的同心弧轴；不按最近轴号硬配 |
 | 阻尼器数量识别 | V16/V18、跨视图物理归一、布局可见性与数量调和 | 输出设计布置数量候选，不替代合同数量或生产放行 |
@@ -20,6 +21,35 @@
 明确不包含：D4跨项目梁自动识别、从DWG自动推导安装净空、翻墩/墙内自动判断、正式深化DWG、
 真实项目图纸、项目运行结果、编译DLL、许可证、账号或密钥。D4冻结状态和恢复条件见
 [PROJECT_STATUS.md](PROJECT_STATUS.md)。
+
+## v12.3无CAD安装候选后端
+
+- 新增基于MIT许可ACadSharp 3.6.51的Windows只读候选读取器；首次构建下载固定NuGet包并
+  校验SHA-256，依赖、EXE和DLL只写入仓库外的本机缓存。
+- 运行器先计算原图SHA-256、复制到非同步工作区、核对副本，再只打开副本；运行结束再次
+  核对原图哈希；单次读取默认300秒超时，只终止本轮候选读取器。
+- 输出TEXT、MTEXT、ATTRIB、ATTDEF模板、INSERT、LINE、LWPOLYLINE、POINT、CIRCLE、ARC候选，
+  保留Handle、根空间、块路径和递归坐标，并完整汇总解析通知、未支持实体及遍历问题。
+- 当前状态固定属于候选比较层。布局视口可见性、嵌套有效图层、动态块、xref、代理对象、
+  MINSERT及非均匀缩放几何仍未闭合；`formal_backend_equivalent=false`、
+  `absence_proven=false`。
+- 已用两套真实DWG、原生中望变换合成图和既有布局视口合成图完成字段回归。可比的根插入、
+  普通文字、MTEXT、直线和圆心覆盖较好，但复杂嵌套坐标、ATTRIB、带bulge多段线外包框、
+  非均匀圆弧、MINSERT展开、动态块和视口可见性仍未闭合。部分ATTRIB坐标与中望不一致，
+  因此属性坐标明确标记为
+  `parser_value_not_backend_equivalent`，不能送入正式数量/定位流程。详见
+  [portable/README.md](portable/README.md)和[CAD_BACKEND_COMPATIBILITY.md](CAD_BACKEND_COMPATIBILITY.md)。
+
+### ACadSharp来源与授权
+
+- 上游源码：[DomCR/ACadSharp](https://github.com/DomCR/ACadSharp)，由DomCR维护；NuGet页面列出的
+  包所有者为`DomCr`，版权人为Albert Domenech。
+- 本工具固定使用官方[NuGet ACadSharp 3.6.51](https://www.nuget.org/packages/ACadSharp/3.6.51)，
+  许可证为[MIT](https://github.com/DomCR/ACadSharp/blob/master/LICENSE)。固定NuGet包SHA-256为
+  `E66741A44848C6D1F9CF935DA72716F6A84924EA5D5EC494F5644C41AA98D97B`。
+- ACadSharp上游是可读写DWG/DXF的通用C#库；本仓库没有复制其源码或提交其DLL，只通过固定NuGet
+  包构建自己的候选读取器，并且本工具入口只实现“打开校验后的分析副本并读取”，不暴露DWG写入路径。
+- 本项目不是ACadSharp官方项目，也不代表上游作者对本工具的工程结果、字段等价性或适用性背书。
 
 ## v12.2受限下游汇总器
 
@@ -165,6 +195,7 @@ V16。原 DWG 只复制、校验 SHA-256、只读打开，流程关闭图纸时�
 ## 包内容
 
 - `scripts\`：V18/V16 统一入口、V19跨DWG编排、V23几何定位证据包、目录内容复筛及数量、表格、跨视图、布局视口分析脚本。
+- `portable\`：ACadSharp只读候选读取器源码、固定依赖校验和仓库外构建脚本；不含二进制。
 - `zwcad\`：六类完整导出器与V18轻量指纹导出器的 C# 源码、外部构建脚本、V20隔离批量/单图工作器和 V15 合成回归。
 - `codex-skill\`：通用CAD证据提取的 Codex 适配层。
 - `experimental\deepening\`：仅消费既有状态的最小净空/几何生根汇总器；不含识图输入和项目结果。
