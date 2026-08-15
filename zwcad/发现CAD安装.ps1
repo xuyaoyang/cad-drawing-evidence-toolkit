@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet('Any', 'ZWCAD', 'AutoCAD')]
     [string]$Vendor = 'Any',
 
@@ -37,7 +37,6 @@ function Add-Candidate {
         $database = Join-Path $full 'ZwDatabaseMgd.dll'
         $console = $null
         $backend = 'zwcad-dotnet-com'
-        $status = 'current_backend_supported'
     }
     else {
         $exe = Join-Path $full 'acad.exe'
@@ -48,7 +47,6 @@ function Add-Candidate {
             $consolePath
         } else { $null }
         $backend = 'autocad-dotnet-coreconsole'
-        $status = 'discovery_only_backend_not_validated'
     }
     if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
         return
@@ -58,12 +56,31 @@ function Add-Candidate {
         (Test-Path -LiteralPath $managed -PathType Leaf) -and
         (Test-Path -LiteralPath $database -PathType Leaf)
     )
-    $currentReady = ($CandidateVendor -eq 'ZWCAD' -and $apiReady)
     $version = $null
     try {
         $version = (Get-Item -LiteralPath $exe).VersionInfo.FileVersion
     }
     catch { $version = $null }
+    if ($CandidateVendor -eq 'ZWCAD') {
+        $currentReady = $apiReady
+        $status = if ($currentReady) {
+            'current_backend_supported'
+        } else {
+            'managed_api_incomplete'
+        }
+    }
+    else {
+        $currentReady = (
+            $apiReady -and
+            $null -ne $console -and
+            $version -match '^R?24\.2(?:\.|$)'
+        )
+        $status = if ($currentReady) {
+            'autocad_2023_backend_supported'
+        } else {
+            'autocad_backend_outside_validated_scope'
+        }
+    }
     $Rows.Add([pscustomobject][ordered]@{
         vendor = $CandidateVendor
         install_root = $full
@@ -113,15 +130,15 @@ foreach ($registryRoot in $uninstallRoots) {
     }
 }
 
+$fileSystemProgramFiles = @(
+    Get-PSDrive -PSProvider FileSystem -ErrorAction SilentlyContinue |
+        ForEach-Object { Join-Path $_.Root 'Program Files' }
+)
 $searchRoots = @(
     $env:ProgramFiles,
-    ${env:ProgramFiles(x86)},
-    'C:\Program Files',
-    'D:\Program Files',
-    'E:\Program Files',
-    'F:\Program Files',
-    'G:\Program Files'
-) | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Container) } |
+    ${env:ProgramFiles(x86)}
+) + $fileSystemProgramFiles |
+    Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Container) } |
     Select-Object -Unique
 
 foreach ($searchRoot in $searchRoots) {
@@ -151,9 +168,9 @@ if ($RequireCurrentBackend) {
     $result = @($result | Where-Object { $_.current_toolkit_backend_ready })
     if ($result.Count -eq 0) {
         throw (
-            'No current runnable backend was found. The released exporter ' +
-            'backend is ZWCAD-only; AutoCAD discovery does not imply that ' +
-            'the ZWCAD assemblies can be loaded in AutoCAD.'
+            'No current runnable backend was found. Supported native hosts ' +
+            'are an API-ready ZWCAD installation or AutoCAD 2023 R24.2 ' +
+            'with Core Console; other AutoCAD releases remain excluded.'
         )
     }
 }
