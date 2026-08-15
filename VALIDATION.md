@@ -1,5 +1,25 @@
 # 发布验证
 
+## 2026-08-15 v12.4 AutoCAD 2023辅助后端与自动路由
+
+- 路由顺序固定为`ACadSharp → ZWCAD → AutoCAD2023`。合成视口DWG实跑分别命中
+  `zwcad_native_fallback_selected`和（故障注入中望路径后）
+  `autocad_2023_native_fallback_selected`；两份路由记录通过语义校验。
+- AutoCAD 2023 R24.2现场编译7个DLL成功；Core Console对两套非公开真实DWG及
+  合成视口DWG只读导出成功，分析副本SHA-256前后不变。真实DWG和逐图输出
+  不进入本仓库。
+- 非公开大图字段对照中，TEXT 14202/14202、图框线5285/5285、块实例
+  1154/1154、方向文字14066/14066、基础几何40534/40534、可见性实例
+  1154/1154、图层374/374、布局2/2的可比核心字段闭合。
+- 合成视口图中4个模型展示视口核心字段4/4闭合。纸空间整体视口不再
+  进入模型设备映射；关闭视口的运行时编号差异只作诊断。
+- 边界仍为`backend_equivalent=false`、`absence_proven=false`；字体/实体外包框差异不作核心
+  等价证明，非AutoCAD 2023 R24.2版本明确拒绝。
+- AutoCAD Core Console正常导出和零秒超时故障注入均保持分析副本哈希不变；
+  超时后本轮新增`accoreconsole`PID为0，已有输出文件时拒绝覆盖或复用。
+- 根工具测试`56 passed`，Skill内置测试`51 passed`，受限下游测试`5 passed, 1 skipped`；
+  Python compileall通过，40个PowerShell脚本在PowerShell 7和Windows PowerShell 5.1解析错误均为0。
+
 ## 2026-08-14 v12.3 ACadSharp候选后端复核
 
 - 第二阶段增加原生中望合成变换图，独立覆盖嵌套、旋转、非均匀缩放、MINSERT、ATTDEF、
@@ -16,7 +36,7 @@
 
 - 使用ACadSharp 3.6.51固定NuGet包，包SHA-256为
   `E66741A44848C6D1F9CF935DA72716F6A84924EA5D5EC494F5644C41AA98D97B`；源码在仓库，
-  包、DLL和EXE只在`G:\CodexWork`临时区构建。
+  包、DLL和EXE只在仓库外的本机临时区构建。
 - 非公开真实DWG只读副本运行和重复性检查成功；原图运行前后哈希不变，真实输入、哈希、统计和
   运行输出均未进入仓库。真实字段对比发现部分ATTRIB坐标不一致，且存在解析通知和未支持实体，
   故正式等价门禁保持关闭，状态为`portable_readonly_candidate_unresolved`。
@@ -47,7 +67,7 @@
 - 根目录测试`40 passed`，Skill内置测试`37 passed`；Python `compileall`通过。
 - 28个PowerShell脚本在PowerShell 7与Windows PowerShell 5.1解析错误均为0。
 - Codex Skill校验通过；本机中望机械CAD 2026 API重新编译7个导出器全部成功，
-  DLL仅保存在`G:\CodexWork`临时验证目录。
+  DLL仅保存在仓库外的临时验证目录。
 - V16省略`-ZwcadRoot`的`-RouteOnly`冒烟通过，生成预检报告且未启动CAD进程。
 - 禁入扩展名、固定个人路径和凭证扫描结果均为0。
 

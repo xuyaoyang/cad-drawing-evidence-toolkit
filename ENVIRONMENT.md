@@ -5,7 +5,8 @@
 - Windows 10/11。
 - PowerShell 7 或 Windows PowerShell 5.1。
 - Python 3.10+；当前 Python 脚本只使用标准库。
-- 能正常打开目标 DWG 的中望 CAD，并提供 `ZwManaged.dll`、`ZwDatabaseMgd.dll` 和 COM 自动化接口。
+- 原生辅助闭合至少有一个可用宿主：中望CAD（`ZwManaged.dll`、`ZwDatabaseMgd.dll`、COM），
+  或AutoCAD 2023 R24.2（`AcCoreMgd.dll`、`AcDbMgd.dll`、`AcMgd.dll`、Core Console）。
 - 中望安装目录内存在 `fonts\HZTXT.SHX` 与 `fonts\simplex.shx`；缺失任一
   文件时V20拒绝无人值守运行。
 - .NET Framework 4.x 的 64 位 C# 编译器。
@@ -19,15 +20,14 @@ SHA-256匹配的包。NuGet包、DLL和EXE必须位于仓库和同步目录之�
 - 原始 DWG 可位于项目目录或 OneDrive，但保持只读。
 - 工作目录按以下优先级确定：显式 `-WorkRoot`；环境变量 `CAD_READING_WORK_ROOT`；默认 `%LOCALAPPDATA%\CadReadingToolkit\Work`。
 - 工作目录不得是磁盘根目录，也不得位于 `OneDrive` 或系统识别的同步根目录。
-- 当前项目电脑仍可显式使用 `G:\CodexWork`，但其他电脑不需要 G 盘，也不需要修改脚本源码。
+- 可显式使用任意本地非同步工作目录；不要因为电脑盘符不同而修改脚本源码。
 - DLL、缓存、日志和可重建中间文件不得写入 OneDrive。
 - 中望导出器必须针对目标电脑安装的中望版本现场重新编译，不分发预编译 DLL。
 - 中望/AutoCAD安装路径不得写死。统一入口未传`-ZwcadRoot`时按
   `CAD_ZWCAD_ROOT`、卸载注册表和常见安装目录自动发现；也可先运行
   `zwcad\发现CAD安装.ps1 -Vendor Any`审查结果。
-- 当前只验证中望CAD执行后端。AutoCAD安装发现仅用于兼容性预检，不能加载中望
-  程序集，也不能在AutoCAD适配器和真实DWG回归完成前自动切换。
-- ACadSharp入口是显式候选通道，不会由V18/V16静默选中，也不会向正式中望输出契约伪装。
+- AutoCAD适配器仅允许2023 R24.2，更高或更低版本均不自动切换。它不加载中望DLL。
+- ACadSharp仍是候选证据通道；单图自动路由会先运行它，但不伪装成V16/V19正式闭合输出。
 
 ## V18 执行内容
 
@@ -49,6 +49,17 @@ SHA-256匹配的包。NuGet包、DLL和EXE必须位于仓库和同步目录之�
 
 所有 `.ps1` 以 UTF-8 BOM 保存，兼容 PowerShell 7 与 Windows PowerShell 5.1。
 SHA-256 由 .NET 流式计算；允许失败的图框分析以退出码记录安全停止，不中断其他图纸。
+
+## 单图Agent自动路由
+
+```powershell
+.\scripts\运行CAD只读自动后端.ps1 `
+  -InputPath 'D:\项目\sample.dwg' `
+  -WorkRoot 'D:\CadWork\sample-route'
+```
+
+路由固定为ACadSharp、中望CAD、AutoCAD 2023。如果中望已安装但安全门禁失败，将记录失败再
+尝试AutoCAD 2023；不会绕过中望优先级。两个原生后端均核对六类JSON和分析副本SHA-256。
 
 ## V20 无人值守字体和进程隔离
 
@@ -73,8 +84,8 @@ SHA-256 由 .NET 流式计算；允许失败的图框分析以退出码记录安
 
 ## 运行失败排查
 
-- 未发现中望：检查`CAD_ZWCAD_ROOT`，或显式传`-ZwcadRoot`；只有AutoCAD时当前
-  版本应安全停止。完整边界见`CAD_BACKEND_COMPATIBILITY.md`。
+- 未发现中望：检查`CAD_ZWCAD_ROOT`或显式传`-ZwcadRoot`；若有AutoCAD 2023 R24.2，
+  单图自动路由会继续尝试。V18/V16正式数量入口仍需中望。
 - 编译失败：确认自动发现或显式传入的 `ZwcadRoot` 是当前中望安装根目录，且两个托管 API DLL 存在。
 - COM 无法启动：先手动启动一次中望、完成许可/首次启动设置后关闭，再重试。
 - 缺字体仍弹窗：检查 `output\font-policy\font-policy.json`、任务FMP及两个

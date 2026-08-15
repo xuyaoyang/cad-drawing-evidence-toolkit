@@ -1,10 +1,12 @@
 {
   "name": "cad-reading-toolkit",
-  "version": "12.3.0",
-  "purpose": "portable read-only CAD evidence extraction with a source-only ACadSharp candidate backend, damper design-quantity reconciliation, per-device location, risk-tiered SVG sampling, and read-only ZWCAD lookup",
+  "version": "12.4.0",
+  "purpose": "agent-routed read-only CAD evidence extraction with ACadSharp first, ZWCAD fallback, and an AutoCAD 2023 fallback, plus damper evidence reconciliation",
   "core_entry": "AI_WORKFLOW.md",
   "unified_runner": "scripts/运行CAD阻尼器数量核对V18.ps1",
   "portable_candidate_runner": "scripts/运行ACadSharp只读候选提取.ps1",
+  "automatic_backend_runner": "scripts/运行CAD只读自动后端.ps1",
+  "automatic_backend_route_schema": "schemas/cad-backend-route.schema.json",
   "portable_candidate_schema": "schemas/acadsharp-portable-evidence.schema.json",
   "portable_field_comparison": "scripts/compare_acadsharp_portable_with_zwcad.py",
   "experimental_downstream_runner": "experimental/deepening/scripts/export_d4_minimal_clearance_anchorage.py",
@@ -14,6 +16,7 @@
   "supported_inputs": [
     "DWG opened by ZWCAD",
     "DWG analysis copy opened by the pinned ACadSharp candidate reader",
+    "DWG analysis copy opened by AutoCAD 2023 R24.2 Core Console",
     "ZWCAD V5 recursive-text JSON",
     "ZWCAD V5 frame-geometry JSON",
     "ZWCAD V6 block-instance JSON",
@@ -25,6 +28,8 @@
   "capabilities": [
     "structural-profession routing",
     "source-only ACadSharp read-only candidate extraction without an installed CAD host",
+    "ordered ACadSharp to ZWCAD to AutoCAD 2023 fallback routing",
+    "AutoCAD 2023 R24.2 shared-source native evidence export",
     "portable ZWCAD and AutoCAD installation discovery",
     "optional multimodal review routing with environment-only credentials",
     "portable non-synchronized work-root selection",
@@ -87,7 +92,7 @@
     "project-results",
     "D4-cross-project-automatic-recognition",
     "project-specific-current-state-and-ledger-data",
-    "AutoCAD-export-backend",
+    "AutoCAD-versions-other-than-2023-R24.2",
     "ACadSharp-formal-backend-equivalence",
     "multimodal-formal-confirmation"
   ]

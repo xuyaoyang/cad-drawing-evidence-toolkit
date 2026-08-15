@@ -100,6 +100,20 @@ def viewport_content_enabled(viewport: dict[str, Any]) -> bool:
     )
 
 
+def is_paper_viewport(viewport: dict[str, Any]) -> bool:
+    """识别每个布局自动拥有的整体纸空间视口。
+
+    新版 V13 直接给出 is_paper_viewport；旧证据兼容使用 Number == 1。
+    该视口描述纸空间本身，不是展示模型内容的浮动视口。
+    """
+    if "is_paper_viewport" in viewport:
+        return bool(viewport.get("is_paper_viewport"))
+    try:
+        return int(viewport.get("number")) == 1
+    except (TypeError, ValueError):
+        return False
+
+
 def main() -> int:
     args = parse_args()
     visibility = json.loads(
@@ -115,7 +129,13 @@ def main() -> int:
         for row in visibility.get("records", [])
         if row.get("instance_key")
     }
-    viewports = list(visibility.get("viewports", []))
+    all_viewports = list(visibility.get("viewports", []))
+    paper_viewports = [
+        viewport for viewport in all_viewports if is_paper_viewport(viewport)
+    ]
+    viewports = [
+        viewport for viewport in all_viewports if not is_paper_viewport(viewport)
+    ]
     layouts = list(visibility.get("layouts", []))
 
     blocking_error_fields = (
@@ -250,15 +270,16 @@ def main() -> int:
         overall_status = "layout_viewport_visibility_consistent"
 
     viewport_rows: list[dict[str, Any]] = []
-    for viewport in viewports:
+    for viewport in all_viewports:
         handle = str(viewport.get("handle") or "")
-        counts = viewport_counts[handle]
+        counts = viewport_counts.get(handle, Counter())
         viewport_rows.append(
             {
                 "layout_name": viewport.get("layout_name") or "",
                 "layout_tab_order": viewport.get("layout_tab_order"),
                 "viewport_handle": handle,
                 "viewport_number": viewport.get("number"),
+                "is_paper_viewport": is_paper_viewport(viewport),
                 "on": viewport.get("on"),
                 "entity_visible": viewport.get("entity_visible"),
                 "layer": (viewport.get("layer_state") or {}).get("name", ""),
@@ -307,6 +328,7 @@ def main() -> int:
             "layout_tab_order",
             "viewport_handle",
             "viewport_number",
+            "is_paper_viewport",
             "on",
             "entity_visible",
             "layer",
@@ -326,7 +348,8 @@ def main() -> int:
         "## 结论",
         "",
         f"- 状态：`{overall_status}`。",
-        f"- 布局：{len(layouts)}；视口：{len(viewports)}。",
+        f"- 布局：{len(layouts)}；模型展示视口：{len(viewports)}；"
+        f"纸空间整体视口：{len(paper_viewports)}。",
         f"- 阻尼器语义叶子候选：{len(candidates)}。",
         f"- 在至少一个布局视口确认可见："
         f"{state_counts['visible_in_layout_viewport']}。",
@@ -359,6 +382,7 @@ def main() -> int:
                 "duplicate_display_count": duplicate_display_count,
                 "unresolved_candidate_count": unresolved_candidate_count,
                 "viewport_count": len(viewports),
+                "paper_viewport_count": len(paper_viewports),
                 "unresolved_viewport_count": len(unresolved_viewports),
                 "blocking_error_count": sum(blocking_errors.values()),
                 "report": str(report_path),

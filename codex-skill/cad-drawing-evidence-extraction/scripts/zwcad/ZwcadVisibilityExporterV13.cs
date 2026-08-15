@@ -270,6 +270,7 @@ namespace CadReadingExploration
                 layout == null ? -1 : layout.TabOrder,
                 viewport.Handle.ToString(),
                 viewport.Number,
+                viewport.Number == 1,
                 SafeViewportOn(viewport, counters),
                 entityVisible,
                 viewport.Locked,
@@ -752,6 +753,8 @@ namespace CadReadingExploration
                 .Append("\",\"layout_tab_order\":").Append(record.LayoutTabOrder)
                 .Append(",\"handle\":\"").Append(Escape(record.Handle))
                 .Append("\",\"number\":").Append(record.Number)
+                .Append(",\"is_paper_viewport\":")
+                .Append(Bool(record.IsPaperViewport))
                 .Append(",\"on\":").Append(Bool(record.On))
                 .Append(",\"entity_visible\":").Append(Bool(record.EntityVisible))
                 .Append(",\"locked\":").Append(Bool(record.Locked))
@@ -1053,6 +1056,7 @@ namespace CadReadingExploration
                 int layoutTabOrder,
                 string handle,
                 int number,
+                bool isPaperViewport,
                 bool on,
                 bool entityVisible,
                 bool locked,
@@ -1084,6 +1088,7 @@ namespace CadReadingExploration
                 LayoutTabOrder = layoutTabOrder;
                 Handle = handle;
                 Number = number;
+                IsPaperViewport = isPaperViewport;
                 On = on;
                 EntityVisible = entityVisible;
                 Locked = locked;
@@ -1116,6 +1121,7 @@ namespace CadReadingExploration
             public int LayoutTabOrder { get; private set; }
             public string Handle { get; private set; }
             public int Number { get; private set; }
+            public bool IsPaperViewport { get; private set; }
             public bool On { get; private set; }
             public bool EntityVisible { get; private set; }
             public bool Locked { get; private set; }

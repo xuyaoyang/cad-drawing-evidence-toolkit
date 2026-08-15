@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/xuyaoyang/cad-drawing-evidence-toolkit/schemas/cad-backend-route.schema.json",
+  "title": "CAD read-only backend route record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "route_order",
+    "status",
+    "selected_backend",
+    "selected_output",
+    "source_name",
+    "source_sha256_before",
+    "source_sha256_after",
+    "source_unchanged",
+    "portable_fallback_reasons",
+    "absence_proven",
+    "attempts"
+  ],
+  "properties": {
+    "schema_version": {"const": "cad-backend-route/0.1"},
+    "route_order": {
+      "const": ["ACadSharp", "ZWCAD", "AutoCAD2023"]
+    },
+    "status": {
+      "enum": [
+        "portable_candidate_selected",
+        "zwcad_native_fallback_selected",
+        "autocad_2023_native_fallback_selected",
+        "manual_review_required_no_backend",
+        "source_hash_changed_safe_stop"
+      ]
+    },
+    "selected_backend": {
+      "type": ["string", "null"],
+      "enum": ["ACadSharp", "ZWCAD", "AutoCAD2023", null]
+    },
+    "selected_output": {"type": ["string", "null"]},
+    "source_name": {"type": "string", "minLength": 1},
+    "source_sha256_before": {"type": "string", "pattern": "^[0-9A-F]{64}$"},
+    "source_sha256_after": {"type": "string", "pattern": "^[0-9A-F]{64}$"},
+    "source_unchanged": {"type": "boolean"},
+    "portable_fallback_reasons": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "absence_proven": {"const": false},
+    "attempts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["backend", "status", "message", "output", "reasons"],
+        "properties": {
+          "backend": {"enum": ["ACadSharp", "ZWCAD", "AutoCAD2023"]},
+          "status": {
+            "enum": ["success", "fallback_required", "failed", "not_available"]
+          },
+          "message": {"type": ["string", "null"]},
+          "output": {"type": ["string", "null"]},
+          "reasons": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}

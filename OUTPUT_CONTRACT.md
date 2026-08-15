@@ -29,6 +29,21 @@
 `absence_proven=false`。只有语义相同的字段才能计入匹配；诊断性的嵌套组合变换、旋转圆
 外包框或ATTDEF兼容口径不得被解释为正式后端等价。
 
+## 单图后端路由契约
+
+`cad-backend-route/0.1`必须保留固定顺序`ACadSharp → ZWCAD → AutoCAD2023`、每次尝试的
+状态/原因/独立输出、所选后端、原图SHA-256前后值及`source_unchanged`。以下门禁固定：
+
+- `absence_proven=false`；
+- 原图哈希变化时必须为`source_hash_changed_safe_stop`，且不得选中后端；
+- 选中中望或AutoCAD 2023前，必须确认执行成功、分析副本哈希未变、六类JSON齐全；
+- 不得静默合并ACadSharp与原生输出；
+- 三者均失败时保留`manual_review_required_no_backend`，不写成“图中没有”。
+
+AutoCAD/中望字段对照`native-cad-backend-comparison/0.1`中，字体/实体外包框、纸空间
+整体视口相机值和运行时视口编号是诊断项。它们不覆盖Handle、文字、WCS、方向、
+图层或模型展示视口核心字段，也不将`backend_equivalent`或`absence_proven`提升为true。
+
 ## V18 顶层输出
 
 `<WorkRoot>\output\V18目录内容复筛.md`、`.csv`、`.json` 必须至少包含：

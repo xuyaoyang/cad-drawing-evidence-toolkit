@@ -1,10 +1,10 @@
-# CAD 识图工具包 v12.3
+# CAD 识图工具包 v12.4
 
-> 当前开发版本：`12.3.0`（2026-08-14），稳定Release仍为`12.1.0`。本仓库的稳定主线仍以CAD只读证据能力为核心；
-> D4阻尼器跨项目自动识别保持冻结。本版本新增的只是消费既有状态的受限汇总器，不会从DWG
+> 当前开发版本：`12.4.0`（2026-08-15），稳定Release仍为`12.1.0`。本仓库的稳定主线仍以CAD只读证据能力为核心；
+> D4阻尼器跨项目自动识别保持冻结。本版本新增单图只读后端路由，不恢复从DWG
 > 自动推导梁或净空。
 
-面向结构 DWG 的只读证据提取和阻尼器设计数量核对。它将中望 CAD 作为 DWG 解析内核，自动导出文字、图框、块实例、文字方向、基础几何、图层与布局视口可见性，再由本地脚本完成专业路由、图纸角色判断、重复展示去重、楼栋/楼层展开、型号与 X/Y 方向调和。
+面向结构 DWG 的只读证据提取和阻尼器设计数量核对。单图Agent入口先用ACadSharp生成轻量候选；出现关键未决项时依次尝试中望CAD、AutoCAD 2023，原生宿主共用同一套V5/V6/V7/V10/V13导出器源码。本地脚本再完成专业路由、图纸角色判断、重复展示去重、楼栋/楼层展开、型号与 X/Y 方向调和。
 
 本包既可由 Codex Skill 调用，也可由能读取文件并执行本地命令的其他 AI 使用；AI 本身不必具有多模态能力。
 
@@ -14,6 +14,8 @@
 | --- | --- | --- |
 | 中望CAD只读提取 | V18/V16统一入口、V20隔离工作器、V5/V6/V7/V10/V13/V18导出器源码 | 目标电脑现场编译；原DWG只读且关闭时不保存 |
 | ACadSharp便携候选提取 | `scripts\运行ACadSharp只读候选提取.ps1`、候选证据JSON | 无需安装CAD；只用于字段对照和候选检索，不是中望正式后端等价替代 |
+| AutoCAD 2023只读辅助后端 | `autocad\build_autocad_2023_exporters.ps1`、Core Console运行器 | 仅R24.2；中望不可用时才尝试；不支持更高版本AutoCAD |
+| Agent自动后端路由 | `scripts\运行CAD只读自动后端.ps1`、`cad-backend-route.json` | 固定ACadSharp→中望→AutoCAD 2023；证据不静默合并；`absence_proven=false` |
 | 文字索引与检索 | `scripts\生成图纸文字索引.py`、递归文字JSON、坐标/句柄/块路径 | 代理对象或导出跳过项保持未决 |
 | 轴网与逐台定位 | V19/V21/V22/V23 | 支持正交、旋转/扇形直轴及满足证据门槛的同心弧轴；不按最近轴号硬配 |
 | 阻尼器数量识别 | V16/V18、跨视图物理归一、布局可见性与数量调和 | 输出设计布置数量候选，不替代合同数量或生产放行 |
@@ -21,6 +23,30 @@
 明确不包含：D4跨项目梁自动识别、从DWG自动推导安装净空、翻墩/墙内自动判断、正式深化DWG、
 真实项目图纸、项目运行结果、编译DLL、许可证、账号或密钥。D4冻结状态和恢复条件见
 [PROJECT_STATUS.md](PROJECT_STATUS.md)。
+
+## v12.4 Agent自动后端路由
+
+- 单图只读入口固定依次尝试`ACadSharp → ZWCAD → AutoCAD2023`。ACadSharp如果遇到视口、
+  代理/未支持实体、MINSERT、非均匀缩放、缺Handle或遍历问题，候选证据仍保留，
+  但路由进入原生宿主。
+- 中望安装存在且导出成功时即停止；只有中望未安装、API不可用或执行失败时，
+  才检查AutoCAD 2023。AutoCAD适配器明确拒绝非R24.2版本。
+- AutoCAD DLL不是中望DLL混用。构建脚本对同一份导出器C#源码作命名空间/引用变换，
+  再引用本机`AcCoreMgd.dll`/`AcDbMgd.dll`/`AcMgd.dll`现场编译，仓库不提交DLL。
+- 已用合成布局视口图和两套非公开真实DWG做只读字段级回归。可比的文字、块实例、
+  方向、基础几何、图层/布局/模型展示视口核心字段一致；字体外包框、纸空间整体
+  视口相机值和关闭视口运行时编号仅作宿主诊断，不宣称后端整体等价。
+
+单图最短调用：
+
+```powershell
+.\scripts\运行CAD只读自动后端.ps1 `
+  -InputPath 'D:\项目\sample.dwg' `
+  -WorkRoot 'D:\CadWork\sample-route'
+```
+
+先读返回的`RouteRecord`；它会保留每次尝试、触发原因、所选后端、输出目录和原图
+SHA-256前后值。
 
 ## v12.3无CAD安装候选后端
 
@@ -95,11 +121,10 @@ V16。原 DWG 只复制、校验 SHA-256、只读打开，流程关闭图纸时�
 
 ## v12.1环境与AI路由
 
-- 新增`zwcad\发现CAD安装.ps1`：先查`CAD_ZWCAD_ROOT`/`CAD_AUTOCAD_ROOT`，
-  再查卸载注册表和常见`Program Files`目录。路径发现结果会区分“当前中望后端可运行”
-  与“AutoCAD仅发现、未验证”。详见[CAD_BACKEND_COMPATIBILITY.md](CAD_BACKEND_COMPATIBILITY.md)。
-- 当前执行后端仍是中望CAD。能找到`acad.exe`、`AcMgd.dll`和`AcDbMgd.dll`不等于
-  AutoCAD兼容；真实AutoCAD适配和字段级回归完成前必须安全停止。
+- v12.1新增`zwcad\发现CAD安装.ps1`：v12.4的发现结果已能区分可运行中望、
+  可运行AutoCAD 2023 R24.2和超出验证范围的其他AutoCAD。详见
+  [CAD_BACKEND_COMPATIBILITY.md](CAD_BACKEND_COMPATIBILITY.md)。
+- v12.1当时AutoCAD仅完成发现；v12.4已新增限定于AutoCAD 2023 R24.2的辅助执行后端。
 - 基础AI没有图像能力时，可复制`MULTIMODAL_ASSISTANT.example.json`并配置独立
   多模态服务；密钥只通过环境变量提供。配置检查入口为
   `scripts\validate_multimodal_assistant_config.py`。
@@ -196,6 +221,7 @@ V16。原 DWG 只复制、校验 SHA-256、只读打开，流程关闭图纸时�
 
 - `scripts\`：V18/V16 统一入口、V19跨DWG编排、V23几何定位证据包、目录内容复筛及数量、表格、跨视图、布局视口分析脚本。
 - `portable\`：ACadSharp只读候选读取器源码、固定依赖校验和仓库外构建脚本；不含二进制。
+- `autocad\`：限定AutoCAD 2023 R24.2的共享源码构建适配器和Core Console只读运行器。
 - `zwcad\`：六类完整导出器与V18轻量指纹导出器的 C# 源码、外部构建脚本、V20隔离批量/单图工作器和 V15 合成回归。
 - `codex-skill\`：通用CAD证据提取的 Codex 适配层。
 - `experimental\deepening\`：仅消费既有状态的最小净空/几何生根汇总器；不含识图输入和项目结果。
