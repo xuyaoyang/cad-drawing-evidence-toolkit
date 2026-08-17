@@ -1,5 +1,22 @@
 # 发布验证
 
+## 2026-08-17 v12.5.0正式Release复核
+
+- 发布范围为`v12.1.0..v12.5.0`的通用源码、Schema、测试和文档，包含受限下游
+  状态汇总器、ACadSharp 3.6.51便携候选后端、AutoCAD 2023实机辅助后端以及
+  AutoCAD 2020/2018/2014版本化门禁；D4跨项目深化自动识别仍冻结且不进入Release。
+- 发布标签只能在Release文档PR合并后的`main`提交上创建；GitHub Release不附加本机
+  构建资产，只使用GitHub自动生成的源码归档。
+- 发布前重新执行根工具及受限下游测试、Skill测试、Python `compileall`、JSON语法检查、
+  PowerShell 7/5.1解析、根/Skill同步哈希、禁入扩展名、固定个人路径及凭证扫描。
+- 根工具及受限下游`67 passed, 1 skipped`，Skill`57 passed`；44个PowerShell脚本
+  在PowerShell 7和Windows PowerShell 5.1中解析错误均为0，10组根/Skill核心文件
+  SHA-256一致。
+- `v12.1.0`以来及本次Release文档共66个新增/修改文件：禁入扩展名、固定个人路径和
+  凭证明文命中均为0；Python `compileall`和3个JSON文件语法检查通过。
+- 2020/2018/2014仍为源码适配和门禁验证，未安装对应宿主，不得因正式发布而改写为
+  实机等价；AutoCAD 2014继续拒绝AC1032且不自动转换。
+
 ## 2026-08-17 v12.5 AutoCAD 2020/2018/2014版本化适配
 
 - AutoCAD版本策略固定为64位2023 R24.2、2020 R23.1、2018 R22.0、2014 R19.1；
