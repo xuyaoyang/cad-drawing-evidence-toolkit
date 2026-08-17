@@ -56,11 +56,14 @@ V16 目录首次运行可加 `-RouteOnly`，只检查专业、图纸角色和文
 1. ACadSharp先生成轻量候选；
 2. 有视口、代理/未支持实体、MINSERT、非均匀缩放、缺Handle或遍历问题等关键
    未决项时，先检查并运行中望CAD；
-3. 中望未安装、API不可用或执行失败时，再检查AutoCAD 2023 R24.2；
-4. 三者均不能闭合时安全停止。
+3. 中望未安装、API不可用或执行失败时，再按AutoCAD 2023、2020、2018、2014
+   检查64位宿主；
+4. 2014只接受AC1027及更早DWG；未知或超限格式不得打开宿主或自动转换；
+5. 所有后端均不能闭合时安全停止。
 
 不得把不同后端的证据静默合并。必须校验`cad-backend-route.json`，保留
-`absence_proven=false`。AutoCAD构建只引用本机Autodesk程序集，明确拒绝非R24.2版本；
+`absence_proven=false`。AutoCAD构建只引用本机Autodesk程序集，仅接受64位R24.2、
+R23.1、R22.0、R19.1，并保留源DWG版本与宿主上限；
 字体/实体外包框、纸空间整体视口相机值和运行时视口编号只作诊断。
 
 ## V20 无人值守中望执行
@@ -75,8 +78,9 @@ V16 与 V18 必须经 `scripts/zwcad/中望COM隔离批量只读导出V20.ps1`
    不得在无人值守流程中复用或终止用户会话；
 4. 把执行日志、字体策略、任务 JSON 和可重建 DLL 保存在非同步工作目录。
 
-V18/V16正式数量管线仍仅使用中望。单图Agent路由的AutoCAD辅助后端已限定为
-AutoCAD 2023 R24.2并完成实机只读字段回归；更高版本不在适配范围。
+V18/V16正式数量管线仍仅使用中望。单图Agent路由的AutoCAD 2023 R24.2已完成
+实机只读字段回归；2020 R23.1、2018 R22.0、2014 R19.1已完成源码适配和版本门禁，
+但在对应真实宿主回归前不得表述为已验证等价。其他版本和32位宿主不在范围。
 
 基础模型没有多模态能力时，可以配置独立多模态模型辅助V24高风险ROI复核；密钥只从
 环境变量读取，视觉输出不能改变正式证据状态。本技能不确认梁高或安装净空；下游在
@@ -139,9 +143,11 @@ V23生成后自动调用V24。V24把证据未决、OUT、圆弧/切向延伸、�
 - `scripts/zwcad/build_zwcad_exporters_v16.ps1`、`中望COM隔离批量只读导出V20.ps1` 与 `中望COM单图只读工作器V20.ps1`：一次编译V5文字/图框、V6实例、V7方向、V10基础几何和V13可见性导出器；临时应用无人值守字体映射，每张图独立进程、超时清理、失败续跑，并在结束后恢复用户字体和对话框配置。
 - `scripts/zwcad/ZwcadContentFingerprintExporterV18.cs`、`build_zwcad_content_fingerprint_v18.ps1` 与 `中望COM批量只读内容指纹导出V18.ps1`：只扫描实际插入可达内容，输出轻量文字/块/图层/实体内容指纹；按目标中望版本现场编译，不携带DLL。
 - `scripts/运行CAD只读自动后端.ps1`、`validate_cad_backend_route.py`和
-  `schemas/cad-backend-route.schema.json`：实现并校验ACadSharp→中望→AutoCAD 2023的单图路由。
-- `scripts/autocad/build_autocad_2023_exporters.ps1`与`AutoCADCoreConsole只读导出.ps1`：
-  限定R24.2的共享源码编译与只读Core Console执行。
+  `schemas/cad-backend-route.schema.json`：实现并校验ACadSharp→中望→AutoCAD
+  2023/2020/2018/2014的单图路由。
+- `scripts/autocad/AutoCADVersionPolicy.ps1`、`build_autocad_exporters.ps1`与
+  `AutoCADCoreConsole只读导出.ps1`：执行多版本识别、DWG头门禁、共享源码编译与
+  只读Core Console执行；2014不得读取AC1032。
 - `scripts/zwcad/ZwcadSyntheticViewportFixtureV15.cs`、构建/生成脚本和 `scripts/验证布局视口合成测试图.py`：没有真实视口冻结层样本时生成带标准答案的合成回归图；合成图只能验证算法，禁止作为工程证据。
 
 所有 Python 脚本都应显式传入位于本次工作目录的 `--output-dir`；不要把临时结果写回技能目录或 OneDrive。

@@ -31,14 +31,18 @@
 
 ## 单图后端路由契约
 
-`cad-backend-route/0.1`必须保留固定顺序`ACadSharp → ZWCAD → AutoCAD2023`、每次尝试的
-状态/原因/独立输出、所选后端、原图SHA-256前后值及`source_unchanged`。以下门禁固定：
+`cad-backend-route/0.2`必须保留固定顺序
+`ACadSharp → ZWCAD → AutoCAD2023 → AutoCAD2020 → AutoCAD2018 → AutoCAD2014`、
+每次尝试的状态/原因/独立输出、宿主版本与DWG上限、所选后端、源DWG版本头、原图
+SHA-256前后值及`source_unchanged`。以下门禁固定：
 
 - `absence_proven=false`；
 - 原图哈希变化时必须为`source_hash_changed_safe_stop`，且不得选中后端；
-- 选中中望或AutoCAD 2023前，必须确认执行成功、分析副本哈希未变、六类JSON齐全；
+- 选中中望或任一AutoCAD前，必须确认执行成功、分析副本哈希未变、六类JSON齐全；
+- AutoCAD 2023/2020/2018的DWG上限为AC1032，AutoCAD 2014为AC1027；未知或
+  超限格式必须记录`incompatible`，不得打开宿主或自动降版转换；
 - 不得静默合并ACadSharp与原生输出；
-- 三者均失败时保留`manual_review_required_no_backend`，不写成“图中没有”。
+- 所有候选均失败或不兼容时保留`manual_review_required_no_backend`，不写成“图中没有”。
 
 AutoCAD/中望字段对照`native-cad-backend-comparison/0.1`中，字体/实体外包框、纸空间
 整体视口相机值和运行时视口编号是诊断项。它们不覆盖Handle、文字、WCS、方向、

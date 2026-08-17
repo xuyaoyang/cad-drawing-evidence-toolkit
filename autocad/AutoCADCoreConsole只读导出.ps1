@@ -1,4 +1,4 @@
-﻿param(
+param(
     [Parameter(Mandatory = $true)]
     [string[]]$DrawingPath,
 
@@ -19,6 +19,8 @@
 )
 
 $ErrorActionPreference = 'Stop'
+
+. (Join-Path $PSScriptRoot 'AutoCADVersionPolicy.ps1')
 
 if (-not ('CadReadingNativePath' -as [type])) {
     Add-Type -TypeDefinition @'
@@ -54,7 +56,7 @@ function Convert-ToCoreConsolePath {
     }
     $scriptPath = $buffer.ToString()
     if ($scriptPath -match '[^\x20-\x7E]') {
-        throw "AutoCAD 2023 script path is not ASCII-safe: $scriptPath"
+        throw "AutoCAD script path is not ASCII-safe: $scriptPath"
     }
     return ($scriptPath -replace '\\', '/')
 }
@@ -65,16 +67,22 @@ $coreConsole = Join-Path $resolvedRoot 'accoreconsole.exe'
 $acadExe = Join-Path $resolvedRoot 'acad.exe'
 foreach ($required in @($coreConsole, $acadExe)) {
     if (-not (Test-Path -LiteralPath $required -PathType Leaf)) {
-        throw "AutoCAD 2023 executable not found: $required"
+        throw "AutoCAD executable not found: $required"
     }
 }
 
 $acadVersion = (Get-Item -LiteralPath $acadExe).VersionInfo.FileVersion
-if ($acadVersion -notmatch '^R?24\.2(?:\.|$)') {
+$policy = Get-AutoCadHostPolicy -FileVersion $acadVersion
+if ($null -eq $policy) {
     throw (
-        "This runner is intentionally limited to AutoCAD 2023 (R24.2). " +
+        'Unsupported AutoCAD host. Supported releases are AutoCAD 2023 (R24.2), ' +
+        '2020 (R23.1), 2018 (R22.0), and 64-bit 2014 (R19.1). ' +
         "Detected: $acadVersion"
     )
+}
+$architecture = Get-PortableExecutableArchitecture -Path $acadExe
+if ($architecture -ne 'x64') {
+    throw "Only 64-bit AutoCAD hosts are supported. Detected architecture: $architecture"
 }
 
 if ($Mode -eq 'Full') {
@@ -112,14 +120,14 @@ else {
 $pluginPaths = foreach ($name in $pluginNames) {
     $path = Join-Path $resolvedPluginDir $name
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-        throw "AutoCAD 2023 plugin not found: $path"
+        throw "$($policy.product_name) plugin not found: $path"
     }
     $path
 }
 
 $sessionDir = Split-Path -Parent ([System.IO.Path]::GetFullPath($ExecutionLog))
 New-Item -ItemType Directory -Path $sessionDir -Force | Out-Null
-$jobDir = Join-Path $sessionDir 'autocad-2023-jobs'
+$jobDir = Join-Path $sessionDir ("autocad-$($policy.release)-jobs")
 New-Item -ItemType Directory -Path $jobDir -Force | Out-Null
 
 $rows = New-Object System.Collections.Generic.List[object]
@@ -129,6 +137,35 @@ foreach ($drawingValue in $DrawingPath) {
     $index++
     $drawing = (Resolve-Path -LiteralPath $drawingValue).Path
     $beforeHash = Get-Sha256Hex -Path $drawing
+    $dwgVersion = Get-DwgVersionCode -Path $drawing
+    $compatibility = Test-AutoCadDwgCompatibility `
+        -DwgVersion $dwgVersion -Policy $policy
+    $started = Get-Date
+    if (-not $compatibility.compatible) {
+        $afterHash = Get-Sha256Hex -Path $drawing
+        $rows.Add([pscustomobject]@{
+            drawing_path = $drawing
+            mode = $Mode
+            backend = "autocad-$($policy.release)-dotnet-coreconsole"
+            autocad_release = $policy.release
+            autocad_api_version = $policy.api_version
+            autocad_file_version = $acadVersion
+            architecture = $architecture
+            source_dwg_version = $dwgVersion
+            max_dwg_version = $policy.max_dwg_version
+            status = 'dwg_version_incompatible'
+            message = $compatibility.reason
+            elapsed_seconds = [math]::Round(((Get-Date) - $started).TotalSeconds, 3)
+            input_sha256_before = $beforeHash
+            input_sha256_after = $afterHash
+            expected_outputs = ''
+            stdout_log = $null
+            stderr_log = $null
+            terminated_accoreconsole_pids = ''
+        })
+        continue
+    }
+
     $drawingDirectory = Split-Path -Parent $drawing
     $outputDirectory = [System.IO.Path]::GetFullPath(
         (Join-Path $drawingDirectory '..\输出')
@@ -173,7 +210,6 @@ foreach ($drawingValue in $DrawingPath) {
         [System.Text.Encoding]::ASCII
     )
 
-    $started = Get-Date
     $arguments = @(
         '/i', ('"' + $drawing + '"'),
         '/s', ('"' + $scriptPath + '"'),
@@ -220,8 +256,13 @@ foreach ($drawingValue in $DrawingPath) {
     $rows.Add([pscustomobject]@{
         drawing_path = $drawing
         mode = $Mode
-        backend = 'autocad-2023-dotnet-coreconsole'
-        autocad_version = $acadVersion
+        backend = "autocad-$($policy.release)-dotnet-coreconsole"
+        autocad_release = $policy.release
+        autocad_api_version = $policy.api_version
+        autocad_file_version = $acadVersion
+        architecture = $architecture
+        source_dwg_version = $dwgVersion
+        max_dwg_version = $policy.max_dwg_version
         status = $status
         message = $message
         elapsed_seconds = [math]::Round(((Get-Date) - $started).TotalSeconds, 3)

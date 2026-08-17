@@ -6,7 +6,8 @@
 - PowerShell 7 或 Windows PowerShell 5.1。
 - Python 3.10+；当前 Python 脚本只使用标准库。
 - 原生辅助闭合至少有一个可用宿主：中望CAD（`ZwManaged.dll`、`ZwDatabaseMgd.dll`、COM），
-  或AutoCAD 2023 R24.2（`AcCoreMgd.dll`、`AcDbMgd.dll`、`AcMgd.dll`、Core Console）。
+  或64位AutoCAD 2023/2020/2018/2014（`AcCoreMgd.dll`、`AcDbMgd.dll`、
+  `AcMgd.dll`、Core Console）。
 - 中望安装目录内存在 `fonts\HZTXT.SHX` 与 `fonts\simplex.shx`；缺失任一
   文件时V20拒绝无人值守运行。
 - .NET Framework 4.x 的 64 位 C# 编译器。
@@ -26,7 +27,9 @@ SHA-256匹配的包。NuGet包、DLL和EXE必须位于仓库和同步目录之�
 - 中望/AutoCAD安装路径不得写死。统一入口未传`-ZwcadRoot`时按
   `CAD_ZWCAD_ROOT`、卸载注册表和常见安装目录自动发现；也可先运行
   `zwcad\发现CAD安装.ps1 -Vendor Any`审查结果。
-- AutoCAD适配器仅允许2023 R24.2，更高或更低版本均不自动切换。它不加载中望DLL。
+- AutoCAD适配器仅允许64位2023 R24.2、2020 R23.1、2018 R22.0、2014 R19.1。
+  2023/2020/2018最多接受AC1032，2014最多接受AC1027；未知或超限格式不自动转换。
+  它不加载中望DLL。
 - ACadSharp仍是候选证据通道；单图自动路由会先运行它，但不伪装成V16/V19正式闭合输出。
 
 ## V18 执行内容
@@ -58,8 +61,9 @@ SHA-256 由 .NET 流式计算；允许失败的图框分析以退出码记录安
   -WorkRoot 'D:\CadWork\sample-route'
 ```
 
-路由固定为ACadSharp、中望CAD、AutoCAD 2023。如果中望已安装但安全门禁失败，将记录失败再
-尝试AutoCAD 2023；不会绕过中望优先级。两个原生后端均核对六类JSON和分析副本SHA-256。
+路由固定为ACadSharp、中望CAD、AutoCAD 2023、2020、2018、2014。如果中望已安装但
+安全门禁失败，将记录失败再按版本优先级尝试AutoCAD；不会绕过中望优先级。两个原生宿主族
+均核对六类JSON和分析副本SHA-256。
 
 ## V20 无人值守字体和进程隔离
 
@@ -84,8 +88,8 @@ SHA-256 由 .NET 流式计算；允许失败的图框分析以退出码记录安
 
 ## 运行失败排查
 
-- 未发现中望：检查`CAD_ZWCAD_ROOT`或显式传`-ZwcadRoot`；若有AutoCAD 2023 R24.2，
-  单图自动路由会继续尝试。V18/V16正式数量入口仍需中望。
+- 未发现中望：检查`CAD_ZWCAD_ROOT`或显式传`-ZwcadRoot`；若有受支持的64位AutoCAD，
+  单图自动路由会继续尝试。2014遇到AC1032会明确记为不兼容。V18/V16正式数量入口仍需中望。
 - 编译失败：确认自动发现或显式传入的 `ZwcadRoot` 是当前中望安装根目录，且两个托管 API DLL 存在。
 - COM 无法启动：先手动启动一次中望、完成许可/首次启动设置后关闭，再重试。
 - 缺字体仍弹窗：检查 `output\font-policy\font-policy.json`、任务FMP及两个

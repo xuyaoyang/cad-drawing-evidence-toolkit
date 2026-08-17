@@ -1,4 +1,4 @@
 interface:
   display_name: "CAD 阻尼器数量核对"
-  short_description: "ACadSharp优先，中望/AutoCAD 2023辅助的CAD证据提取"
-  default_prompt: "Use $cad-drawing-evidence-extraction to read CAD evidence without modifying drawings, route a single DWG through ACadSharp then ZWCAD then AutoCAD 2023 when required, retain fail-closed evidence, and reconcile damper devices across views."
+  short_description: "ACadSharp优先，中望/多版本AutoCAD辅助的CAD证据提取"
+  default_prompt: "Use $cad-drawing-evidence-extraction to read CAD evidence without modifying drawings, route a single DWG through ACadSharp then ZWCAD then compatible 64-bit AutoCAD 2023/2020/2018/2014 when required, retain fail-closed evidence without DWG conversion, and reconcile damper devices across views."

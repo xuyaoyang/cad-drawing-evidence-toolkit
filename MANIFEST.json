@@ -1,7 +1,7 @@
 {
   "name": "cad-reading-toolkit",
-  "version": "12.4.0",
-  "purpose": "agent-routed read-only CAD evidence extraction with ACadSharp first, ZWCAD fallback, and an AutoCAD 2023 fallback, plus damper evidence reconciliation",
+  "version": "12.5.0",
+  "purpose": "agent-routed read-only CAD evidence extraction with ACadSharp first, ZWCAD fallback, and version-gated AutoCAD 2023/2020/2018/2014 fallbacks, plus damper evidence reconciliation",
   "core_entry": "AI_WORKFLOW.md",
   "unified_runner": "scripts/运行CAD阻尼器数量核对V18.ps1",
   "portable_candidate_runner": "scripts/运行ACadSharp只读候选提取.ps1",
@@ -16,7 +16,7 @@
   "supported_inputs": [
     "DWG opened by ZWCAD",
     "DWG analysis copy opened by the pinned ACadSharp candidate reader",
-    "DWG analysis copy opened by AutoCAD 2023 R24.2 Core Console",
+    "compatible DWG analysis copy opened by 64-bit AutoCAD 2023, 2020, 2018, or 2014 Core Console",
     "ZWCAD V5 recursive-text JSON",
     "ZWCAD V5 frame-geometry JSON",
     "ZWCAD V6 block-instance JSON",
@@ -28,8 +28,9 @@
   "capabilities": [
     "structural-profession routing",
     "source-only ACadSharp read-only candidate extraction without an installed CAD host",
-    "ordered ACadSharp to ZWCAD to AutoCAD 2023 fallback routing",
-    "AutoCAD 2023 R24.2 shared-source native evidence export",
+    "ordered ACadSharp to ZWCAD to AutoCAD 2023, 2020, 2018, and 2014 fallback routing",
+    "version-gated AutoCAD shared-source native evidence export",
+    "DWG-header compatibility safe-stop without automatic conversion",
     "portable ZWCAD and AutoCAD installation discovery",
     "optional multimodal review routing with environment-only credentials",
     "portable non-synchronized work-root selection",
@@ -92,7 +93,9 @@
     "project-results",
     "D4-cross-project-automatic-recognition",
     "project-specific-current-state-and-ledger-data",
-    "AutoCAD-versions-other-than-2023-R24.2",
+    "AutoCAD-versions-other-than-2023-R24.2-2020-R23.1-2018-R22.0-2014-R19.1",
+    "32-bit-AutoCAD-hosts",
+    "automatic-DWG-version-conversion",
     "ACadSharp-formal-backend-equivalence",
     "multimodal-formal-confirmation"
   ]
