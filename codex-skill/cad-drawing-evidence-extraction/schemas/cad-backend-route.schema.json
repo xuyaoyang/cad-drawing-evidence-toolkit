@@ -11,6 +11,7 @@
     "selected_backend",
     "selected_output",
     "source_name",
+    "source_dwg_version",
     "source_sha256_before",
     "source_sha256_after",
     "source_unchanged",
@@ -19,25 +20,47 @@
     "attempts"
   ],
   "properties": {
-    "schema_version": {"const": "cad-backend-route/0.1"},
+    "schema_version": {"const": "cad-backend-route/0.2"},
     "route_order": {
-      "const": ["ACadSharp", "ZWCAD", "AutoCAD2023"]
+      "const": [
+        "ACadSharp",
+        "ZWCAD",
+        "AutoCAD2023",
+        "AutoCAD2020",
+        "AutoCAD2018",
+        "AutoCAD2014"
+      ]
     },
     "status": {
       "enum": [
         "portable_candidate_selected",
         "zwcad_native_fallback_selected",
         "autocad_2023_native_fallback_selected",
+        "autocad_2020_native_fallback_selected",
+        "autocad_2018_native_fallback_selected",
+        "autocad_2014_native_fallback_selected",
         "manual_review_required_no_backend",
         "source_hash_changed_safe_stop"
       ]
     },
     "selected_backend": {
       "type": ["string", "null"],
-      "enum": ["ACadSharp", "ZWCAD", "AutoCAD2023", null]
+      "enum": [
+        "ACadSharp",
+        "ZWCAD",
+        "AutoCAD2023",
+        "AutoCAD2020",
+        "AutoCAD2018",
+        "AutoCAD2014",
+        null
+      ]
     },
     "selected_output": {"type": ["string", "null"]},
     "source_name": {"type": "string", "minLength": 1},
+    "source_dwg_version": {
+      "type": "string",
+      "pattern": "^(AC[0-9]{4}|UNRECOGNIZED)$"
+    },
     "source_sha256_before": {"type": "string", "pattern": "^[0-9A-F]{64}$"},
     "source_sha256_after": {"type": "string", "pattern": "^[0-9A-F]{64}$"},
     "source_unchanged": {"type": "boolean"},
@@ -53,17 +76,55 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["backend", "status", "message", "output", "reasons"],
+        "required": [
+          "backend",
+          "status",
+          "message",
+          "output",
+          "reasons",
+          "host_release",
+          "host_api_version",
+          "host_file_version",
+          "max_dwg_version"
+        ],
         "properties": {
-          "backend": {"enum": ["ACadSharp", "ZWCAD", "AutoCAD2023"]},
+          "backend": {
+            "enum": [
+              "ACadSharp",
+              "ZWCAD",
+              "AutoCAD2023",
+              "AutoCAD2020",
+              "AutoCAD2018",
+              "AutoCAD2014"
+            ]
+          },
           "status": {
-            "enum": ["success", "fallback_required", "failed", "not_available"]
+            "enum": [
+              "success",
+              "fallback_required",
+              "failed",
+              "not_available",
+              "incompatible"
+            ]
           },
           "message": {"type": ["string", "null"]},
           "output": {"type": ["string", "null"]},
           "reasons": {
             "type": "array",
             "items": {"type": "string"}
+          },
+          "host_release": {
+            "type": ["string", "null"],
+            "enum": ["2023", "2020", "2018", "2014", null]
+          },
+          "host_api_version": {
+            "type": ["string", "null"],
+            "pattern": "^R[0-9]+\\.[0-9]+$"
+          },
+          "host_file_version": {"type": ["string", "null"]},
+          "max_dwg_version": {
+            "type": ["string", "null"],
+            "pattern": "^AC[0-9]{4}$"
           }
         }
       }

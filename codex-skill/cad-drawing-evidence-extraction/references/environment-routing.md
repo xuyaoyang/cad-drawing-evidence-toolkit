@@ -14,16 +14,21 @@
 - 无人值守统一使用V20隔离批处理：目标电脑必须有已注册的中望COM/.NET环境和安装目录内的`HZTXT.SHX`、`simplex.shx`。V20用任务本地FMP临时替代常见缺失SHX/中文大字体，并把FILEDIA/CMDDIA设为0；逐图超时后只清理本轮新进程并继续，最终恢复原配置。变更前在`%LOCALAPPDATA%\CadReadingToolkit`写入恢复账本，整批进程被外部强杀时由下一次V20启动先恢复。已有用户ZWCAD进程时默认拒绝启动，避免复用或误关用户会话。
 - 字体替代的目的仅是避免弹窗阻塞API证据导出；字形、字宽、排版和特殊符号仍可能变化。需要视觉核对或正式出图时必须补齐原字体，不能把替代字体渲染当作图纸原貌。
 
-## AutoCAD 2023 Core Console：中望后的原生辅助后端
+## AutoCAD Core Console：中望后的多版本原生辅助后端
 
-- 只支持AutoCAD 2023 R24.2；发现更高/更低版本时安全停止。
-- `scripts/autocad/build_autocad_2023_exporters.ps1`转换共享导出器源码的引用/命名空间，
+- 只支持64位AutoCAD 2023 R24.2、2020 R23.1、2018 R22.0、2014 R19.1；
+  其他版本和32位宿主安全停止。
+- `scripts/autocad/build_autocad_exporters.ps1`转换共享导出器源码的引用/命名空间，
   再引用本机Autodesk程序集编译；不得加载中望DLL。
+- 启动宿主前读取DWG头：2023/2020/2018最多接受AC1032，2014最多接受AC1027；
+  未知或超限版本记录`incompatible`，禁止自动降版转换。
 - Core Console只打开经SHA-256校验的分析副本，关闭时丢弃更改，并要求
   V5/V6/V7/V10/V13六类JSON齐全。
 - 只有ACadSharp遇到关键未决且中望未安装/不可用/失败时才进入该后端。
 - 宿主外包框、纸空间整体视口相机值和运行时视口编号仅作诊断；
   `backend_equivalent=false`、`absence_proven=false`不可提升。
+- 当前实机字段回归仅覆盖AutoCAD 2023；2020/2018/2014须在对应真实宿主验证后
+  才能提升其宿主验证状态。
 
 ## 视觉核对：只处理 API 不足的事实
 

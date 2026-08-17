@@ -9,6 +9,14 @@
 
 $ErrorActionPreference = 'Stop'
 
+$autoCadPolicyScript = Join-Path (
+    Split-Path -Parent $PSScriptRoot
+) 'autocad\AutoCADVersionPolicy.ps1'
+if (-not (Test-Path -LiteralPath $autoCadPolicyScript -PathType Leaf)) {
+    throw "AutoCAD version policy not found: $autoCadPolicyScript"
+}
+. $autoCadPolicyScript
+
 function Add-Candidate {
     param(
         [System.Collections.Generic.List[object]]$Rows,
@@ -42,6 +50,7 @@ function Add-Candidate {
         $exe = Join-Path $full 'acad.exe'
         $managed = Join-Path $full 'AcMgd.dll'
         $database = Join-Path $full 'AcDbMgd.dll'
+        $coreManaged = Join-Path $full 'AcCoreMgd.dll'
         $consolePath = Join-Path $full 'accoreconsole.exe'
         $console = if (Test-Path -LiteralPath $consolePath -PathType Leaf) {
             $consolePath
@@ -54,7 +63,11 @@ function Add-Candidate {
     $apiReady = (
         (Test-Path -LiteralPath $exe -PathType Leaf) -and
         (Test-Path -LiteralPath $managed -PathType Leaf) -and
-        (Test-Path -LiteralPath $database -PathType Leaf)
+        (Test-Path -LiteralPath $database -PathType Leaf) -and
+        (
+            $CandidateVendor -eq 'ZWCAD' -or
+            (Test-Path -LiteralPath $coreManaged -PathType Leaf)
+        )
     )
     $version = $null
     try {
@@ -63,6 +76,8 @@ function Add-Candidate {
     catch { $version = $null }
     if ($CandidateVendor -eq 'ZWCAD') {
         $currentReady = $apiReady
+        $policy = $null
+        $architecture = Get-PortableExecutableArchitecture -Path $exe
         $status = if ($currentReady) {
             'current_backend_supported'
         } else {
@@ -70,13 +85,18 @@ function Add-Candidate {
         }
     }
     else {
+        $policy = Get-AutoCadHostPolicy -FileVersion $version
+        $architecture = Get-PortableExecutableArchitecture -Path $exe
         $currentReady = (
             $apiReady -and
             $null -ne $console -and
-            $version -match '^R?24\.2(?:\.|$)'
+            $null -ne $policy -and
+            $architecture -eq 'x64'
         )
         $status = if ($currentReady) {
-            'autocad_2023_backend_supported'
+            "autocad_$($policy.release)_backend_supported"
+        } elseif ($null -ne $policy -and $architecture -ne 'x64') {
+            'autocad_supported_release_requires_x64'
         } else {
             'autocad_backend_outside_validated_scope'
         }
@@ -87,8 +107,15 @@ function Add-Candidate {
         executable = $exe
         managed_api = $managed
         database_api = $database
+        core_managed_api = if ($CandidateVendor -eq 'AutoCAD') { $coreManaged } else { $null }
         core_console = $console
         version = $version
+        architecture = $architecture
+        product_release = if ($null -ne $policy) { $policy.release } else { $null }
+        api_version = if ($null -ne $policy) { $policy.api_version } else { $null }
+        backend_key = if ($null -ne $policy) { $policy.backend_key } else { $null }
+        max_dwg_version = if ($null -ne $policy) { $policy.max_dwg_version } else { $null }
+        policy_priority = if ($null -ne $policy) { $policy.priority } else { 0 }
         discovery_source = $Source
         host_api_ready = $apiReady
         current_toolkit_backend_ready = $currentReady
@@ -158,6 +185,7 @@ $result = @(
     $rows |
         Sort-Object `
             @{ Expression = 'current_toolkit_backend_ready'; Descending = $true }, `
+            @{ Expression = 'policy_priority'; Descending = $true }, `
             @{ Expression = 'host_api_ready'; Descending = $true }, `
             @{ Expression = 'version'; Descending = $true }, `
             install_root |
@@ -169,8 +197,8 @@ if ($RequireCurrentBackend) {
     if ($result.Count -eq 0) {
         throw (
             'No current runnable backend was found. Supported native hosts ' +
-            'are an API-ready ZWCAD installation or AutoCAD 2023 R24.2 ' +
-            'with Core Console; other AutoCAD releases remain excluded.'
+            'are an API-ready ZWCAD installation or 64-bit AutoCAD 2023, ' +
+            '2020, 2018, or 2014 with managed APIs and Core Console.'
         )
     }
 }

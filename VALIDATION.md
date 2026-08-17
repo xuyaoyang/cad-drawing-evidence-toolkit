@@ -1,5 +1,23 @@
 # 发布验证
 
+## 2026-08-17 v12.5 AutoCAD 2020/2018/2014版本化适配
+
+- AutoCAD版本策略固定为64位2023 R24.2、2020 R23.1、2018 R22.0、2014 R19.1；
+  自动路由顺序为`ACadSharp → ZWCAD → AutoCAD2023 → AutoCAD2020 → AutoCAD2018 → AutoCAD2014`。
+- DWG头门禁在启动原生宿主前执行。2023/2020/2018上限为AC1032，2014上限为
+  AC1027；未知或超限格式只记录`incompatible`，不启动宿主、不自动降版转换。
+- 当前AutoCAD 2023 R24.2实机用通用构建器重新编译7个DLL成功；V15合成视口图
+  完整导出六类JSON成功，分析副本SHA-256不变。故障注入中望路径后，单图路由正确
+  选中`autocad_2023_native_fallback_selected`，`cad-backend-route/0.2`语义校验通过。
+- AutoCAD Core Console零秒超时故障注入后，本轮新增`accoreconsole`进程为0，分析副本
+  SHA-256不变；已有输出仍拒绝覆盖或复用。
+- 根工具及受限下游测试`67 passed, 1 skipped`，Skill内置测试`57 passed`；Python
+  `compileall`通过，44个PowerShell脚本在PowerShell 7和Windows PowerShell 5.1
+  解析错误均为0。两个路由Schema和`MANIFEST.json`均通过JSON语法检查。
+- 2020/2018/2014当前电脑未安装，本轮只完成源码、版本识别、x64门禁、DWG兼容门禁
+  和合成策略测试；在对应真实宿主完成7 DLL编译、合成图与真实图字段回归前，不表述为
+  已实机验证或后端等价。
+
 ## 2026-08-15 v12.4 AutoCAD 2023辅助后端与自动路由
 
 - 路由顺序固定为`ACadSharp → ZWCAD → AutoCAD2023`。合成视口DWG实跑分别命中

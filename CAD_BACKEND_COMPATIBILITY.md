@@ -20,25 +20,30 @@ V18/V16入口仍是中望专用的正式数量管线。单DWG的Agent轻量/辅�
 
 - V18/V16正式数量管线及字体恢复逻辑仍以中望CAD为执行后端。
 - 实机调试环境为中望机械CAD 2026；其他中望版本必须在目标电脑现场重新编译并做只读冒烟。
-- 单图辅助后端已实机验证AutoCAD 2023 R24.2 Core Console；不包括更高版本。
+- 单图辅助后端已实机验证AutoCAD 2023 R24.2 Core Console；2020 R23.1、2018 R22.0
+  和2014 R19.1已完成版本化源码适配与安全门禁，但仍须在对应真实宿主上做实机回归。
 - 实际安装目录和版本必须进入运行记录，不能沿用另一台电脑的路径。
 
-## AutoCAD 2023辅助后端
+## AutoCAD多版本辅助后端
 
 AutoCAD与中望CAD的对象模型相近，但程序集、命名空间、COM ProgID、Core Console、
-字体配置和进程名并不相同。v12.4的适配范围为：
+字体配置和进程名并不相同。v12.5的适配范围为：
 
 1. 禁止把`ZwManaged.dll`编译的插件加载进AutoCAD；
-2. `autocad\build_autocad_2023_exporters.ps1`对共享的中望导出器源码作编译时
+2. `autocad\build_autocad_exporters.ps1`对共享的中望导出器源码作编译时
    命名空间转换，单独引用本机`AcCoreMgd.dll`/`AcDbMgd.dll`/`AcMgd.dll`；
-3. `autocad\AutoCADCoreConsole只读导出.ps1`仅接受R24.2，只打开已校验的分析副本，
+3. `autocad\AutoCADVersionPolicy.ps1`只接受64位2023 R24.2、2020 R23.1、
+   2018 R22.0、2014 R19.1；`AutoCADCoreConsole只读导出.ps1`只打开已校验的分析副本，
    终止时丢弃更改，并核对前后SHA-256和六类必需JSON；
-4. 合成布局视口图与两套非公开真实DWG已做字段级回归。文字、块实例、方向、
+4. AutoCAD 2023已用合成布局视口图与两套非公开真实DWG做字段级回归。文字、块实例、方向、
    基础几何、图层、布局和模型展示视口的可比核心字段闭合；
 5. 字体/实体外包框、纸空间整体视口相机值、关闭视口运行时编号只作诊断。
    `backend_equivalent=false`和`absence_proven=false`仍不可提升；
-6. 未安装中望、只有AutoCAD 2023时，自动路由可以切到AutoCAD辅助后端；
-   非R24.2版本继续安全停止。
+6. 未安装中望时，自动路由按2023、2020、2018、2014尝试AutoCAD辅助后端；
+   2023/2020/2018的DWG上限为AC1032，2014上限为AC1027；超限只记录
+   `incompatible`，不打开宿主、不转换图纸；
+7. 当前实机字段级等价回归仅覆盖2023。其他三个版本在真实宿主回归前属于
+   `source_adapter_ready_host_validation_required`，不得表述为已验证等价。
 
 ## Agent自动路由
 
@@ -46,8 +51,9 @@ AutoCAD与中望CAD的对象模型相近，但程序集、命名空间、COM Pro
 
 1. ACadSharp先读；
 2. 有关键未决项时检查并运行中望CAD；
-3. 中望不存在、不可用或失败时，检查并运行AutoCAD 2023 R24.2；
-4. 三者均不能闭合时输出`manual_review_required_no_backend`。
+3. 中望不存在、不可用或失败时，依次检查并运行AutoCAD 2023、2020、2018、2014；
+4. 2014遇到AC1032或任何宿主遇到未知/超限DWG版本时安全跳过；
+5. 所有后端均不能闭合时输出`manual_review_required_no_backend`。
 
 每个后端的证据都保留在独立目录，不静默合并或覆盖。路由记录必须符合
 `schemas/cad-backend-route.schema.json`，并可用`scripts/validate_cad_backend_route.py`校验。
@@ -58,7 +64,7 @@ AutoCAD与中望CAD的对象模型相近，但程序集、命名空间、COM Pro
 它使用固定版本ACadSharp 3.6.51，只打开经SHA-256核对的工作副本，并输出独立的
 `acadsharp-portable-evidence/0.1`候选契约。
 
-该通道仍不是V16正式数量管线的替代，但是v12.4单图Agent路由的第一步：
+该通道仍不是V16正式数量管线的替代，但是v12.5单图Agent路由的第一步：
 
 1. `formal_backend_equivalent=false`和`absence_proven=false`不可提升；
 2. 布局视口裁剪、冻结层、最终可见性和嵌套块有效图层未实现；

@@ -122,7 +122,11 @@ function Add-Attempt {
         [Parameter(Mandatory = $true)][string]$Status,
         [string]$Message,
         [string]$Output,
-        [string[]]$Reasons
+        [string[]]$Reasons,
+        [string]$HostRelease,
+        [string]$HostApiVersion,
+        [string]$HostFileVersion,
+        [string]$MaxDwgVersion
     )
     $Attempts.Add([pscustomobject]@{
         backend = $Backend
@@ -130,7 +134,50 @@ function Add-Attempt {
         message = $Message
         output = $Output
         reasons = @($Reasons)
+        host_release = if ([string]::IsNullOrWhiteSpace($HostRelease)) { $null } else { $HostRelease }
+        host_api_version = if ([string]::IsNullOrWhiteSpace($HostApiVersion)) { $null } else { $HostApiVersion }
+        host_file_version = if ([string]::IsNullOrWhiteSpace($HostFileVersion)) { $null } else { $HostFileVersion }
+        max_dwg_version = if ([string]::IsNullOrWhiteSpace($MaxDwgVersion)) { $null } else { $MaxDwgVersion }
     })
+}
+
+function Get-ExplicitAutoCadCandidate {
+    param([Parameter(Mandatory = $true)][string]$Root)
+
+    $resolved = (Resolve-Path -LiteralPath $Root).Path
+    $acadExe = Join-Path $resolved 'acad.exe'
+    $coreConsole = Join-Path $resolved 'accoreconsole.exe'
+    foreach ($required in @(
+            $acadExe,
+            $coreConsole,
+            (Join-Path $resolved 'AcCoreMgd.dll'),
+            (Join-Path $resolved 'AcDbMgd.dll'),
+            (Join-Path $resolved 'AcMgd.dll')
+        )) {
+        if (-not (Test-Path -LiteralPath $required -PathType Leaf)) {
+            throw "AutoCAD host file not found: $required"
+        }
+    }
+    $fileVersion = (Get-Item -LiteralPath $acadExe).VersionInfo.FileVersion
+    $policy = Get-AutoCadHostPolicy -FileVersion $fileVersion
+    if ($null -eq $policy) {
+        throw "Unsupported AutoCAD host version: $fileVersion"
+    }
+    $architecture = Get-PortableExecutableArchitecture -Path $acadExe
+    if ($architecture -ne 'x64') {
+        throw "Only 64-bit AutoCAD hosts are supported: $architecture"
+    }
+    return [pscustomobject][ordered]@{
+        install_root = $resolved
+        version = $fileVersion
+        architecture = $architecture
+        product_release = $policy.release
+        api_version = $policy.api_version
+        backend_key = $policy.backend_key
+        max_dwg_version = $policy.max_dwg_version
+        policy_priority = $policy.priority
+        current_toolkit_backend_ready = $true
+    }
 }
 
 $InputPath = (Resolve-Path -LiteralPath $InputPath).Path
@@ -175,10 +222,16 @@ $autoCadComponentRoot = Join-Path $repositoryRoot 'autocad'
 if (-not (Test-Path -LiteralPath $autoCadComponentRoot -PathType Container)) {
     $autoCadComponentRoot = Join-Path $PSScriptRoot 'autocad'
 }
+$autoCadPolicy = Join-Path $autoCadComponentRoot 'AutoCADVersionPolicy.ps1'
+if (-not (Test-Path -LiteralPath $autoCadPolicy -PathType Leaf)) {
+    throw "AutoCAD version policy not found: $autoCadPolicy"
+}
+. $autoCadPolicy
+$sourceDwgVersion = Get-DwgVersionCode -Path $InputPath
 $discoveryScript = Join-Path $zwcadComponentRoot '发现CAD安装.ps1'
 $zwcadBuilder = Join-Path $zwcadComponentRoot 'build_zwcad_exporters_v16.ps1'
 $zwcadRunner = Join-Path $zwcadComponentRoot '中望COM隔离批量只读导出V20.ps1'
-$autoCadBuilder = Join-Path $autoCadComponentRoot 'build_autocad_2023_exporters.ps1'
+$autoCadBuilder = Join-Path $autoCadComponentRoot 'build_autocad_exporters.ps1'
 $autoCadRunner = Join-Path $autoCadComponentRoot 'AutoCADCoreConsole只读导出.ps1'
 
 try {
@@ -280,30 +333,67 @@ if ($null -eq $selectedBackend) {
 }
 
 if ($null -eq $selectedBackend) {
-    $resolvedAutoCadRoot = $AutoCadRoot
-    if ([string]::IsNullOrWhiteSpace($resolvedAutoCadRoot)) {
+    $autoCadCandidates = @()
+    $autoCadDiscoveryMessage = $null
+    if ([string]::IsNullOrWhiteSpace($AutoCadRoot)) {
         try {
-            $candidate = @(& $discoveryScript -Vendor AutoCAD) |
-                Where-Object {
-                    $_.host_api_ready -and $_.version -match '^R?24\.2(?:\.|$)'
-                } |
-                Select-Object -First 1
-            if ($null -ne $candidate) {
-                $resolvedAutoCadRoot = $candidate.install_root
-            }
+            $autoCadCandidates = @(& $discoveryScript -Vendor AutoCAD) |
+                Where-Object { $_.current_toolkit_backend_ready } |
+                Sort-Object @{ Expression = 'policy_priority'; Descending = $true }
         }
         catch {
+            $autoCadDiscoveryMessage = $_.Exception.Message
         }
-    }
-
-    if ([string]::IsNullOrWhiteSpace($resolvedAutoCadRoot)) {
-        Add-Attempt -Attempts $attempts -Backend 'AutoCAD2023' -Status 'not_available' `
-            -Message 'No AutoCAD 2023 (R24.2) managed/Core Console host was found.' `
-            -Reasons @('autocad_2023_not_available')
     }
     else {
         try {
-            $autoCadRunRoot = Join-Path $runRoot '03-autocad-2023'
+            $autoCadCandidates = @(
+                Get-ExplicitAutoCadCandidate -Root $AutoCadRoot
+            )
+        }
+        catch {
+            $autoCadDiscoveryMessage = $_.Exception.Message
+        }
+    }
+
+    if ($autoCadCandidates.Count -eq 0) {
+        if ([string]::IsNullOrWhiteSpace($autoCadDiscoveryMessage)) {
+            $autoCadDiscoveryMessage = (
+                'No supported 64-bit AutoCAD 2023, 2020, 2018, or 2014 ' +
+                'managed/Core Console host was found.'
+            )
+        }
+        foreach ($policy in @(Get-SupportedAutoCadPolicies)) {
+            Add-Attempt -Attempts $attempts -Backend $policy.backend_key `
+                -Status 'not_available' -Message $autoCadDiscoveryMessage `
+                -Reasons @("autocad_$($policy.release)_not_available") `
+                -HostRelease $policy.release -HostApiVersion $policy.api_version `
+                -MaxDwgVersion $policy.max_dwg_version
+        }
+    }
+
+    foreach ($candidate in $autoCadCandidates) {
+        if ($null -ne $selectedBackend) { break }
+        $policy = Get-AutoCadHostPolicy -FileVersion ([string]$candidate.version)
+        if ($null -eq $policy) { continue }
+        $compatibility = Test-AutoCadDwgCompatibility `
+            -DwgVersion $sourceDwgVersion -Policy $policy
+        if (-not $compatibility.compatible) {
+            Add-Attempt -Attempts $attempts -Backend $policy.backend_key `
+                -Status 'incompatible' `
+                -Message (
+                    "$($policy.product_name) accepts through $($policy.max_dwg_version); " +
+                    "source is $sourceDwgVersion. No conversion was performed."
+                ) `
+                -Reasons @($compatibility.reason) `
+                -HostRelease $policy.release -HostApiVersion $policy.api_version `
+                -HostFileVersion ([string]$candidate.version) `
+                -MaxDwgVersion $policy.max_dwg_version
+            continue
+        }
+
+        try {
+            $autoCadRunRoot = Join-Path $runRoot ("03-autocad-$($policy.release)")
             $autoCadInput = Join-Path $autoCadRunRoot '输入'
             $autoCadOutput = Join-Path $autoCadRunRoot '输出'
             $autoCadBuild = Join-Path $autoCadRunRoot 'build'
@@ -311,18 +401,19 @@ if ($null -eq $selectedBackend) {
                 Out-Null
             $autoCadCopy = Join-Path $autoCadInput ([System.IO.Path]::GetFileName($InputPath))
             Copy-Item -LiteralPath $InputPath -Destination $autoCadCopy -Force
-            & $autoCadBuilder -AutoCadRoot $resolvedAutoCadRoot `
-                -OutputDir $autoCadBuild -SourceDir $zwcadComponentRoot |
+            & $autoCadBuilder -AutoCadRoot $candidate.install_root `
+                -OutputDir $autoCadBuild -SourceDir $zwcadComponentRoot `
+                -RequiredRelease $policy.release |
                 Out-Null
             $autoCadLog = Join-Path $autoCadRunRoot 'execution.csv'
             $autoCadExecution = & $autoCadRunner -DrawingPath $autoCadCopy `
-                -AutoCadRoot $resolvedAutoCadRoot -Mode Full `
+                -AutoCadRoot $candidate.install_root -Mode Full `
                 -PluginDir $autoCadBuild -ExecutionLog $autoCadLog `
                 -PerDrawingTimeoutSeconds $NativeTimeoutSeconds |
                 Select-Object -First 1
             if ($autoCadExecution.status -ne 'success') {
                 throw (
-                    "AutoCAD 2023 execution status: $($autoCadExecution.status) " +
+                    "$($policy.product_name) execution status: $($autoCadExecution.status) " +
                     $autoCadExecution.message
                 )
             }
@@ -331,20 +422,27 @@ if ($null -eq $selectedBackend) {
                 -DrawingPath $autoCadCopy
             if ($missingAutoCadOutputs.Count -gt 0) {
                 throw (
-                    'AutoCAD 2023 reported success but required evidence outputs are missing: ' +
+                    "$($policy.product_name) reported success but required evidence outputs are missing: " +
                     ($missingAutoCadOutputs -join '|')
                 )
             }
-            Add-Attempt -Attempts $attempts -Backend 'AutoCAD2023' -Status 'success' `
-                -Message 'AutoCAD 2023 Core Console fallback completed.' `
-                -Output $autoCadOutput -Reasons @()
-            $selectedBackend = 'AutoCAD2023'
+            Add-Attempt -Attempts $attempts -Backend $policy.backend_key -Status 'success' `
+                -Message "$($policy.product_name) Core Console fallback completed." `
+                -Output $autoCadOutput -Reasons @() `
+                -HostRelease $policy.release -HostApiVersion $policy.api_version `
+                -HostFileVersion ([string]$candidate.version) `
+                -MaxDwgVersion $policy.max_dwg_version
+            $selectedBackend = $policy.backend_key
             $selectedOutput = $autoCadOutput
-            $routeStatus = 'autocad_2023_native_fallback_selected'
+            $routeStatus = $policy.route_status
         }
         catch {
-            Add-Attempt -Attempts $attempts -Backend 'AutoCAD2023' -Status 'failed' `
-                -Message $_.Exception.Message -Reasons @('autocad_2023_execution_failed')
+            Add-Attempt -Attempts $attempts -Backend $policy.backend_key -Status 'failed' `
+                -Message $_.Exception.Message `
+                -Reasons @("autocad_$($policy.release)_execution_failed") `
+                -HostRelease $policy.release -HostApiVersion $policy.api_version `
+                -HostFileVersion ([string]$candidate.version) `
+                -MaxDwgVersion $policy.max_dwg_version
         }
     }
 }
@@ -357,12 +455,20 @@ if ($sourceHashAfter -ne $sourceHashBefore) {
 }
 
 $routeRecord = [ordered]@{
-    schema_version = 'cad-backend-route/0.1'
-    route_order = @('ACadSharp', 'ZWCAD', 'AutoCAD2023')
+    schema_version = 'cad-backend-route/0.2'
+    route_order = @(
+        'ACadSharp',
+        'ZWCAD',
+        'AutoCAD2023',
+        'AutoCAD2020',
+        'AutoCAD2018',
+        'AutoCAD2014'
+    )
     status = $routeStatus
     selected_backend = $selectedBackend
     selected_output = $selectedOutput
     source_name = [System.IO.Path]::GetFileName($InputPath)
+    source_dwg_version = $sourceDwgVersion
     source_sha256_before = $sourceHashBefore
     source_sha256_after = $sourceHashAfter
     source_unchanged = ($sourceHashBefore -eq $sourceHashAfter)
