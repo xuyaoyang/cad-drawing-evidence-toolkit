@@ -1,5 +1,19 @@
 # 发布验证
 
+## 2026-08-20 v12.6开发主线会话稳定性复核
+
+- 新增仓库/已安装Skill两种形态共用的Session Doctor；临时复制到无Git目录后仍可
+  独立识别`installed_skill`上下文、Manifest、入口和Skill同步状态。
+- 当前本机从已安装Skill路径实跑为`ready`：必要文件缺失0、Skill漂移0，发现可用
+  中望机械CAD 2026和64位AutoCAD 2023；Doctor未打开DWG、未启动CAD、未编译DLL。
+- 根工具及受限下游测试`71 passed, 1 skipped`，Skill内置测试`58 passed`；
+  正式稳定Release仍为`v12.5.0`，本轮不创建标签或Release。
+- Python `compileall`及9个JSON语法检查通过；46个PowerShell脚本在PowerShell
+  7.6.5和Windows PowerShell 5.1中解析错误均为0；源码Skill和已安装Skill的
+  73个非缓存文件逐文件SHA-256一致，安装版测试同为`58 passed`。
+- D4跨项目自动识别继续冻结；梁高深化的D2L 2.2预检属于工程工作区和已安装深化Skill，
+  不进入本公开仓库，也不把AutoCAD V5/V6/V7/V10/V13伪装成D2L。
+
 ## 2026-08-17 v12.5.0正式Release复核
 
 - 发布范围为`v12.1.0..v12.5.0`的通用源码、Schema、测试和文档，包含受限下游

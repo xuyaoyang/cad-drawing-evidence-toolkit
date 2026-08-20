@@ -7,6 +7,8 @@ description: 从 DWG/DXF/CAD 图纸只读提取文字、递归块属性、块实
 
 先读取 [evidence-contract.md](references/evidence-contract.md) 与 [environment-routing.md](references/environment-routing.md)。本技能把 CAD 当作可回查的证据源：每个结论保留原文、坐标、实体来源和可信状态。
 
+新窗口、换电脑或不确定当前Skill版本时，先读取[session-bootstrap.md](references/session-bootstrap.md)，并运行`scripts/检查CAD工具包会话.ps1`。后续路径只使用Doctor返回的`toolkit_root`；`skill_sync=drifted`或`overall_status=blocked`时不得声称当前窗口与仓库/其他窗口等价。
+
 ## 适用范围与边界
 
 - 适用于 DWG、DXF 或 CAD 导出的 JSON/TSV，寻找设计说明、材料、型号、性能参数、技术/质量/检验条款和表格数据。

@@ -6,7 +6,9 @@
 
 ## 执行顺序
 
-1. 读取本文件、`ENVIRONMENT.md`、`CAD_BACKEND_COMPATIBILITY.md`和
+1. 新窗口先按`SESSION_BOOTSTRAP.md`运行`scripts\检查CAD工具包会话.ps1`，
+   以生成的`cad-toolkit-session.json`确定工具根目录、版本、Skill同步状态和可用后端；
+   不得沿用上一窗口记住的路径或后端结论。随后读取本文件、`ENVIRONMENT.md`、`CAD_BACKEND_COMPATIBILITY.md`和
    `OUTPUT_CONTRACT.md`；先运行`zwcad\发现CAD安装.ps1 -Vendor Any`核对本机宿主。
    单图证据检索用`scripts\运行CAD只读自动后端.ps1`，固定ACadSharp先执行；
    出现关键未决项后先看中望，中望不存在/不可用/失败才按AutoCAD 2023、2020、
