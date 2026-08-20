@@ -68,6 +68,13 @@ V16 目录首次运行可加 `-RouteOnly`，只检查专业、图纸角色和文
 R23.1、R22.0、R19.1，并保留源DWG版本与宿主上限；
 字体/实体外包框、纸空间整体视口相机值和运行时视口编号只作诊断。
 
+外部深化任务需要正式梁文字时，普通V5/V6/V7/V10/V13不能冒充D2L。先保留
+ACadSharp候选，再尝试中望D2L；中望不存在、不可用或失败后，使用
+`scripts/autocad/build_autocad_exporters.ps1`现场构建并运行
+`scripts/autocad/运行AutoCADD2L旁路数据库索引.ps1`。只有执行清单为`success`、
+`D2L-sidedb-2.2`且后续深化预检通过才允许进入正式梁高流程。AutoCAD 2023已完成
+真实梁图文字组合键逐条回归；2020/2018/2014仍需对应宿主实机验证。
+
 ## V20 无人值守中望执行
 
 V16 与 V18 必须经 `scripts/zwcad/中望COM隔离批量只读导出V20.ps1`
@@ -148,7 +155,7 @@ V23生成后自动调用V24。V24把证据未决、OUT、圆弧/切向延伸、�
   `schemas/cad-backend-route.schema.json`：实现并校验ACadSharp→中望→AutoCAD
   2023/2020/2018/2014的单图路由。
 - `scripts/autocad/AutoCADVersionPolicy.ps1`、`build_autocad_exporters.ps1`与
-  `AutoCADCoreConsole只读导出.ps1`：执行多版本识别、DWG头门禁、共享源码编译与
+  `AutoCADCoreConsole只读导出.ps1`、`运行AutoCADD2L旁路数据库索引.ps1`：执行多版本识别、DWG头门禁、共享源码编译与
   只读Core Console执行；2014不得读取AC1032。
 - `scripts/zwcad/ZwcadSyntheticViewportFixtureV15.cs`、构建/生成脚本和 `scripts/验证布局视口合成测试图.py`：没有真实视口冻结层样本时生成带标准答案的合成回归图；合成图只能验证算法，禁止作为工程证据。
 

@@ -1,6 +1,6 @@
 {
   "name": "cad-reading-toolkit",
-  "version": "12.6.0-dev",
+  "version": "12.7.0-dev",
   "purpose": "agent-routed read-only CAD evidence extraction with ACadSharp first, ZWCAD fallback, and version-gated AutoCAD 2023/2020/2018/2014 fallbacks, plus damper evidence reconciliation",
   "core_entry": "AI_WORKFLOW.md",
   "fresh_session_entry": "scripts/检查CAD工具包会话.ps1",
@@ -26,13 +26,15 @@
     "ZWCAD V7 oriented-text JSON",
     "ZWCAD V10 primitive-geometry JSON",
     "ZWCAD V13 visibility and layout-viewport JSON"
-    ,"ZWCAD V18 reachable-content fingerprint JSON"
+    ,"ZWCAD V18 reachable-content fingerprint JSON",
+    "AutoCAD D2L-sidedb-2.2 side-database evidence JSON"
   ],
   "capabilities": [
     "structural-profession routing",
     "source-only ACadSharp read-only candidate extraction without an installed CAD host",
     "ordered ACadSharp to ZWCAD to AutoCAD 2023, 2020, 2018, and 2014 fallback routing",
     "version-gated AutoCAD shared-source native evidence export",
+    "AutoCAD D2L 2.2 formal beam evidence export with hash and completeness gates",
     "DWG-header compatibility safe-stop without automatic conversion",
     "portable ZWCAD and AutoCAD installation discovery",
     "fresh-session environment and installed-skill drift diagnosis",

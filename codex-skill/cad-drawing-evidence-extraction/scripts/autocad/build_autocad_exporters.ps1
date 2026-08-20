@@ -72,7 +72,8 @@ $targets = @(
     @{ Source = 'ZwcadOrientedTextExporterV7.cs'; Output = 'CadReadingExploration.AutoCADOrientedTextExporterV7.dll' },
     @{ Source = 'ZwcadPrimitiveGeometryExporterV10.cs'; Output = 'CadReadingExploration.AutoCADPrimitiveGeometryExporterV10.dll' },
     @{ Source = 'ZwcadVisibilityExporterV13.cs'; Output = 'CadReadingExploration.AutoCADVisibilityExporterV13.dll' },
-    @{ Source = 'ZwcadContentFingerprintExporterV18.cs'; Output = 'CadReadingExploration.AutoCADContentFingerprintExporterV18.dll' }
+    @{ Source = 'ZwcadContentFingerprintExporterV18.cs'; Output = 'CadReadingExploration.AutoCADContentFingerprintExporterV18.dll' },
+    @{ Source = 'ZwcadSideDatabaseIndexExporterD2L.cs'; Output = 'CadDeepeningAssistance.AutoCADSideDatabaseIndexD2L.dll' }
 )
 
 $buildRows = New-Object System.Collections.Generic.List[object]
