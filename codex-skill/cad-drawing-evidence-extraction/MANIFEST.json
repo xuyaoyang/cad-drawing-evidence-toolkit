@@ -1,0 +1,9 @@
+{
+  "name": "cad-reading-toolkit-skill",
+  "version": "12.6.0-dev",
+  "core_entry": "SKILL.md",
+  "fresh_session_entry": "scripts/检查CAD工具包会话.ps1",
+  "automatic_backend_runner": "scripts/运行CAD只读自动后端.ps1",
+  "unified_runner": "scripts/运行CAD阻尼器数量核对V18.ps1",
+  "absence_proven": false
+}
