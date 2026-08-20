@@ -1,6 +1,6 @@
 {
   "name": "cad-reading-toolkit",
-  "version": "12.7.0-dev",
+  "version": "12.7.0",
   "purpose": "agent-routed read-only CAD evidence extraction with ACadSharp first, ZWCAD fallback, and version-gated AutoCAD 2023/2020/2018/2014 fallbacks, plus damper evidence reconciliation",
   "core_entry": "AI_WORKFLOW.md",
   "fresh_session_entry": "scripts/检查CAD工具包会话.ps1",

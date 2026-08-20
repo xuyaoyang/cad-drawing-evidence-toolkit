@@ -1,6 +1,6 @@
 {
   "name": "cad-reading-toolkit-skill",
-  "version": "12.7.0-dev",
+  "version": "12.7.0",
   "core_entry": "SKILL.md",
   "fresh_session_entry": "scripts/检查CAD工具包会话.ps1",
   "automatic_backend_runner": "scripts/运行CAD只读自动后端.ps1",
