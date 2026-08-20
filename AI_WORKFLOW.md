@@ -14,6 +14,10 @@
    出现关键未决项后先看中望，中望不存在/不可用/失败才按AutoCAD 2023、2020、
    2018、2014检查64位宿主。2014仅接受AC1027及更早DWG；禁止自动降版转换。
    V18/V16正式数量管线仍不静默换宿主。
+   外部深化流程需要D2L 2.2时，仍保持ACadSharp候选先行、中望原生优先；中望
+   不存在/不可用/失败后，可现场构建AutoCAD D2L并运行
+   `autocad\运行AutoCADD2L旁路数据库索引.ps1`。只有执行清单为`success`且深化
+   预检通过，才可作为正式梁文字前置证据；普通V5/V6/V7/V10/V13不得改名冒充。
 2. 对项目目录运行 `scripts\运行CAD阻尼器数量核对V18.ps1 -ContentScanOnly`；单个用户明确指定的 DWG 可直接进入 V16。
 3. 审查 V17 分层和 V18 内容复筛：`selected` 为原主图；`promoted_primary` 为实际可达内容命中并升级的辅助/不确定图；`keep_supporting`、`reference_hit`、`content_negative` 和 `content_unresolved` 不自动计数。
 4. 只把 `selected + promoted_primary` 送入完整六导出。旧日期、相同哈希副本和内容未决项不得静默提升；内容阴性不等于图中没有目标。

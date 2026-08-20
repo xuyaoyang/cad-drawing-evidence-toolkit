@@ -4,7 +4,7 @@
 > D4阻尼器跨项目自动识别保持冻结。本版本新增单图只读后端路由，不恢复从DWG
 > 自动推导梁或净空。
 
-当前`main`开发版本为`12.6.0-dev`。新窗口先运行`scripts\检查CAD工具包会话.ps1`；它会生成自包含的会话环境清单，检查工具版本、入口完整性、已安装Skill漂移、工作目录安全性和本机后端，避免依赖上一段聊天记忆。详细门禁见[SESSION_BOOTSTRAP.md](SESSION_BOOTSTRAP.md)。
+当前`main`开发版本为`12.7.0-dev`。新窗口先运行`scripts\检查CAD工具包会话.ps1`；它会生成自包含的会话环境清单，检查工具版本、入口完整性、已安装Skill漂移、工作目录安全性和本机后端，避免依赖上一段聊天记忆。详细门禁见[SESSION_BOOTSTRAP.md](SESSION_BOOTSTRAP.md)。
 
 面向结构 DWG 的只读证据提取和阻尼器设计数量核对。单图Agent入口先用ACadSharp生成轻量候选；出现关键未决项时依次尝试中望CAD、64位AutoCAD 2023/2020/2018及受DWG版本限制的2014，原生宿主共用同一套V5/V6/V7/V10/V13导出器源码。本地脚本再完成专业路由、图纸角色判断、重复展示去重、楼栋/楼层展开、型号与 X/Y 方向调和。
 
@@ -16,7 +16,7 @@
 | --- | --- | --- |
 | 中望CAD只读提取 | V18/V16统一入口、V20隔离工作器、V5/V6/V7/V10/V13/V18导出器源码 | 目标电脑现场编译；原DWG只读且关闭时不保存 |
 | ACadSharp便携候选提取 | `scripts\运行ACadSharp只读候选提取.ps1`、候选证据JSON | 无需安装CAD；只用于字段对照和候选检索，不是中望正式后端等价替代 |
-| AutoCAD只读辅助后端 | `autocad\build_autocad_exporters.ps1`、Core Console运行器 | 支持64位2023/2020/2018；2014仅接受AC1027及更早DWG；中望不可用时才尝试 |
+| AutoCAD只读辅助后端 | `autocad\build_autocad_exporters.ps1`、Core Console运行器、`运行AutoCADD2L旁路数据库索引.ps1` | 支持64位2023/2020/2018；2014仅接受AC1027及更早DWG；D2L 2.2可供正式梁高前置证据门禁使用 |
 | Agent自动后端路由 | `scripts\运行CAD只读自动后端.ps1`、`cad-backend-route.json` | 固定ACadSharp→中望→AutoCAD 2023→2020→2018→2014；证据不静默合并；`absence_proven=false` |
 | 文字索引与检索 | `scripts\生成图纸文字索引.py`、递归文字JSON、坐标/句柄/块路径 | 代理对象或导出跳过项保持未决 |
 | 轴网与逐台定位 | V19/V21/V22/V23 | 支持正交、旋转/扇形直轴及满足证据门槛的同心弧轴；不按最近轴号硬配 |
@@ -25,6 +25,33 @@
 明确不包含：D4跨项目梁自动识别、从DWG自动推导安装净空、翻墩/墙内自动判断、正式深化DWG、
 真实项目图纸、项目运行结果、编译DLL、许可证、账号或密钥。D4冻结状态和恢复条件见
 [PROJECT_STATUS.md](PROJECT_STATUS.md)。
+
+## v12.7 AutoCAD D2L 2.2
+
+- `ZwcadSideDatabaseIndexExporterD2L.cs`继续作为一份共享算法源码；构建器只做命名空间映射，
+  分别引用目标宿主程序集现场编译，不把中望DLL加载进AutoCAD，也不提交编译产物。
+- AutoCAD D2L入口为`autocad\运行AutoCADD2L旁路数据库索引.ps1`。目标DWG与宿主DWG必须是
+  两份不同的分析副本；入口在启动前检查64位宿主、API版本和DWG头，运行前后核对两份
+  SHA-256，拒绝覆盖已有证据，并只清理本轮新增的Core Console进程。
+- 正式成功状态要求`D2L-sidedb-2.2`、无截断、跳过对象为0、每条记录有可见/可打印字段，
+  且文字记录有世界方向空间；不满足时输出执行清单并安全停止，不能降级冒充正式梁高证据。
+- AutoCAD 2023已用非公开真实梁图与中望按完全相同的展开根参数对照：顶层16960条、直接文字
+  10002条、属性270条、块实例55条一致，24910条含递归文字在文字/根句柄/块路径/WCS/方向/
+  可见/可打印组合键上逐条一致。两宿主对少量LINE/POLYLINE类型解释仍有8条净差，因此只声明
+  正式梁高所需文字证据闭合，不声明所有几何实体整体等价。
+- 2020、2018、2014复用同一源码及版本门禁；本机没有对应宿主，当前只确认源码兼容设计和
+  静态策略，仍须在装有相应版本的电脑现场编译实跑。2014继续拒绝AC1032，不自动降版。
+
+最短调用（DLL先用同目录构建器现场生成）：
+
+```powershell
+.\autocad\运行AutoCADD2L旁路数据库索引.ps1 `
+  -TargetDrawingPath 'D:\CadWork\项目\target-copy.dwg' `
+  -HostDrawingPath 'D:\CadWork\项目\host-copy.dwg' `
+  -AutoCadRoot 'C:\Program Files\Autodesk\AutoCAD 2023' `
+  -PluginDir 'D:\CadWork\项目\build' `
+  -WorkRoot 'D:\CadWork\项目\autocad-d2l'
+```
 
 ## v12.5 AutoCAD多版本辅助路由
 

@@ -73,6 +73,8 @@ def test_generic_adapter_reuses_shared_sources_and_requires_x64():
     assert "using ZwSoft.ZwCAD." in build
     assert "using Autodesk.AutoCAD." in build
     assert "ZwcadVisibilityExporterV13.cs" in build
+    assert "ZwcadSideDatabaseIndexExporterD2L.cs" in build
+    assert "CadDeepeningAssistance.AutoCADSideDatabaseIndexD2L.dll" in build
     assert "Only 64-bit AutoCAD hosts are supported" in build
     assert "Test-AutoCadDwgCompatibility" in runner
     assert "dwg_version_incompatible" in runner
@@ -84,6 +86,23 @@ def test_core_console_hash_gates_the_copy_and_refuses_output_reuse():
     assert "input_hash_changed" in runner
     assert "GetShortPathName" in runner
     assert "Refusing to reuse or overwrite pre-existing AutoCAD evidence" in runner
+
+
+def test_autocad_d2l_runner_has_formal_evidence_and_readonly_gates():
+    runner = read("autocad/运行AutoCADD2L旁路数据库索引.ps1")
+    source = read("zwcad/ZwcadSideDatabaseIndexExporterD2L.cs")
+    assert 'D2L-sidedb-2.2' in source
+    assert 'CADSIDEDBINDEXD2L' in source
+    assert 'TargetDrawingPath and HostDrawingPath must be different files' in runner
+    assert "'_Y'" in runner
+    assert 'No conversion was performed' in runner
+    assert 'Refusing to reuse or overwrite pre-existing D2L evidence' in runner
+    assert 'target_sha256_before' in runner
+    assert 'host_sha256_before' in runner
+    assert "autocad-$($policy.release)-dotnet-coreconsole-d2l" in runner
+    assert "evidence_gate_failed" in runner
+    assert "skipped_object_count" in runner
+    assert "rotation_space" in runner
 
 
 def test_router_declares_exact_fallback_order_and_output_gate():
